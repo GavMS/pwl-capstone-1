@@ -1,0 +1,201 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema event-ticketing-db
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema event-ticketing-db
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `event-ticketing-db` DEFAULT CHARACTER SET utf8 ;
+USE `event-ticketing-db` ;
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`accounts`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`accounts` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`accounts` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `role` ENUM('') NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `email_verified_at` TIMESTAMP NOT NULL,
+  `updated_at` TIMESTAMP NOT NULL,
+  PRIMARY KEY (`id`));
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`event`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`event` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`event` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(255) NOT NULL,
+  `banner` VARCHAR(255) NOT NULL,
+  `location` VARCHAR(255) NOT NULL,
+  `date` DATETIME NOT NULL,
+  `status` ENUM('') NOT NULL,
+  `updated_at` TIMESTAMP NOT NULL,
+  `accounts_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_event_accounts1_idx` (`accounts_id` ASC) ,
+  CONSTRAINT `fk_event_accounts1`
+    FOREIGN KEY (`accounts_id`)
+    REFERENCES `event-ticketing-db`.`accounts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`event_categories`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`event_categories` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`event_categories` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `updated_at` TIMESTAMP NOT NULL,
+  `event_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_event_categories_event1_idx` (`event_id` ASC) ,
+  CONSTRAINT `fk_event_categories_event1`
+    FOREIGN KEY (`event_id`)
+    REFERENCES `event-ticketing-db`.`event` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`transaction`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`transaction` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`transaction` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `status` ENUM('') NOT NULL,
+  `total_price` DECIMAL(12,2) NOT NULL,
+  `updated_at` TIMESTAMP NOT NULL,
+  `payment_method` VARCHAR(255) NOT NULL,
+  `deadline_payment` DATETIME NULL DEFAULT NULL,
+  `accounts_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_transaction_accounts1_idx` (`accounts_id` ASC) ,
+  CONSTRAINT `fk_transaction_accounts1`
+    FOREIGN KEY (`accounts_id`)
+    REFERENCES `event-ticketing-db`.`accounts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`ticket_types`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`ticket_types` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`ticket_types` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `capacity` INT NOT NULL,
+  `stock` INT NOT NULL,
+  PRIMARY KEY (`id`));
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`e-tickets`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`e-tickets` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`e-tickets` (
+  `unique_code` VARCHAR(255) NOT NULL,
+  `qr_path` VARCHAR(255) NOT NULL,
+  `is_used` ENUM('') NOT NULL,
+  `updated_at` TIMESTAMP NOT NULL,
+  `quantitiy` INT NOT NULL,
+  `event_id` INT UNSIGNED NOT NULL,
+  `ticket_types_id` INT UNSIGNED NOT NULL,
+  `accounts_id` INT UNSIGNED NOT NULL,
+  `transaction_id` INT UNSIGNED NOT NULL,
+  INDEX `fk_e-tickets_event1_idx` (`event_id` ASC) ,
+  INDEX `fk_e-tickets_ticket_types1_idx` (`ticket_types_id` ASC) ,
+  INDEX `fk_e-tickets_accounts1_idx` (`accounts_id` ASC) ,
+  INDEX `fk_e-tickets_transaction1_idx` (`transaction_id` ASC) ,
+  CONSTRAINT `fk_e-tickets_event1`
+    FOREIGN KEY (`event_id`)
+    REFERENCES `event-ticketing-db`.`event` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_e-tickets_ticket_types1`
+    FOREIGN KEY (`ticket_types_id`)
+    REFERENCES `event-ticketing-db`.`ticket_types` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_e-tickets_accounts1`
+    FOREIGN KEY (`accounts_id`)
+    REFERENCES `event-ticketing-db`.`accounts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_e-tickets_transaction1`
+    FOREIGN KEY (`transaction_id`)
+    REFERENCES `event-ticketing-db`.`transaction` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`waiting_lists`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`waiting_lists` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`waiting_lists` (
+  `updated_at` TIMESTAMP NOT NULL,
+  `queue` INT NOT NULL,
+  `accounts_id` INT UNSIGNED NOT NULL,
+  `ticket_types_id` INT UNSIGNED NOT NULL,
+  INDEX `fk_waiting_lists_accounts1_idx` (`accounts_id` ASC) ,
+  INDEX `fk_waiting_lists_ticket_types1_idx` (`ticket_types_id` ASC) ,
+  CONSTRAINT `fk_waiting_lists_accounts1`
+    FOREIGN KEY (`accounts_id`)
+    REFERENCES `event-ticketing-db`.`accounts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_waiting_lists_ticket_types1`
+    FOREIGN KEY (`ticket_types_id`)
+    REFERENCES `event-ticketing-db`.`ticket_types` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+-- -----------------------------------------------------
+-- Table `event-ticketing-db`.`event_ticket_types`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `event-ticketing-db`.`event_ticket_types` ;
+
+CREATE TABLE IF NOT EXISTS `event-ticketing-db`.`event_ticket_types` (
+  `price` INT NOT NULL,
+  `event_id1` INT UNSIGNED NOT NULL,
+  `ticket_types_id` INT UNSIGNED NOT NULL,
+  INDEX `fk_event_ticket_types_event1_idx` (`event_id1` ASC) ,
+  INDEX `fk_event_ticket_types_ticket_types1_idx` (`ticket_types_id` ASC) ,
+  CONSTRAINT `fk_event_ticket_types_event1`
+    FOREIGN KEY (`event_id1`)
+    REFERENCES `event-ticketing-db`.`event` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_event_ticket_types_ticket_types1`
+    FOREIGN KEY (`ticket_types_id`)
+    REFERENCES `event-ticketing-db`.`ticket_types` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
