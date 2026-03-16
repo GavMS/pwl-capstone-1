@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',   // <-- Tambahan field role untuk mass assignment
     ];
 
     /**
@@ -32,6 +33,18 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+        // Helper method — cek apakah user adalah admin
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOrganizer(): bool
+    {
+        return $this->role === 'organizer';
+    }
+
 
     /**
      * Get the attributes that should be cast.
