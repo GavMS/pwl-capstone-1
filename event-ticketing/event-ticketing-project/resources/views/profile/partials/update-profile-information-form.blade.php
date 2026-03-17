@@ -1,13 +1,8 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
-
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+    <header></header>
+    <p class="mt-1 text-sm text-gray-600">
+        {{ __("Update your account's profile information and email address.") }}
+    </p>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf
@@ -21,6 +16,14 @@
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
+        </div>
+
+        <div class="mt-6">
+            <x-input-label for="username" :value="__('Username')" class="text-[#555555] font-medium ml-1" />
+            <x-text-input id="username" name="username" type="text"
+                          class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1"
+                          :value="old('username', $user->username)" required autocomplete="username" />
+            <x-input-error class="mt-2" :messages="$errors->get('username')" />
         </div>
 
         <div>
