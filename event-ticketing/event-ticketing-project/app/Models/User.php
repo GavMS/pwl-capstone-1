@@ -17,8 +17,11 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $table = 'accounts';
+
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'role',   // <-- Tambahan field role untuk mass assignment

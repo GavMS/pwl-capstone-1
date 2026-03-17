@@ -1,18 +1,33 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('User Dashboard') }}
-        </h2>
-    </x-slot>
+    <div class="min-h-screen bg-[#E5E5E3] font-sans antialiased">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h3 class="text-lg font-medium">Selamat datang, {{ $user->name }}!</h3>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">
-                        Anda login dengan role: <span class="font-semibold px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md dark:bg-indigo-900 dark:text-indigo-300">{{ ucfirst($user->role) }}</span>
-                    </p>
+        <header class="bg-white/50 backdrop-blur-sm shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto py-8 px-12">
+                <h2 class="text-3xl font-bold text-[#555555] leading-tight">
+                    {{ __('User Dashboard') }}
+                </h2>
+            </div>
+        </header>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto px-6 lg:px-12">
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm overflow-hidden">
+                    <div class="text-[#444444]">
+                        <h3 class="text-2xl font-bold mb-4">
+                            Selamat datang, <span class="text-[#555555]">{{ $user->name }}</span>!
+                        </h3>
+
+                        <p class="text-lg text-[#777777] leading-relaxed">
+                            Anda login dengan role:
+                            <span class="ml-2 font-bold px-4 py-1.5 bg-[#F4F4F4] text-[#555555] rounded-xl border border-gray-200 shadow-sm">
+                                {{ ucfirst($user->role) }}
+                            </span>
+                        </p>
+
+                        <div class="mt-12 p-8 border-2 border-dashed border-gray-100 rounded-[2rem] text-center">
+                            <p class="text-gray-400 italic">Konten tiket atau aktivitas Anda akan muncul di sini.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
