@@ -17,23 +17,26 @@
 
                     <div>
                         <label class="block text-[#555555] font-medium ml-1">Name</label>
-                        <input type="text" name="name" placeholder="Full Name"
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Full Name"
                                class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1 placeholder-gray-300"
                                required autofocus />
+                        <x-input-error :messages="$errors->get('name')" class="mt-1" />
                     </div>
 
                     <div class="flex gap-4">
                         <div class="flex-1 text-left">
                             <label class="block text-[#555555] font-medium ml-1">Username</label>
-                            <input type="text" name="username" placeholder="Username"
+                            <input type="text" name="username" value="{{ old('username') }}" placeholder="Username"
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1 placeholder-gray-300"
                                    required />
+                            <x-input-error :messages="$errors->get('username')" class="mt-1" />
                         </div>
                         <div class="flex-1 text-left">
                             <label class="block text-[#555555] font-medium ml-1">Email</label>
-                            <input type="email" name="email" placeholder="Email Address"
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="Email Address"
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1 placeholder-gray-300"
                                    required />
+                            <x-input-error :messages="$errors->get('email')" class="mt-1" />
                         </div>
                     </div>
 
@@ -42,6 +45,7 @@
                         <input type="password" name="password" placeholder="Password"
                                class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1 placeholder-gray-300"
                                required />
+                        <x-input-error :messages="$errors->get('password')" class="mt-1" />
                     </div>
 
                     <div>
@@ -49,6 +53,7 @@
                         <input type="password" name="password_confirmation" placeholder="Confirm Password"
                                class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-gray-400 mt-1 placeholder-gray-300"
                                required />
+                        <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1" />
                     </div>
 
                     <button type="submit" class="w-full bg-[#555555] text-white font-bold py-4 rounded-xl hover:bg-[#444444] transition-all mt-4">
