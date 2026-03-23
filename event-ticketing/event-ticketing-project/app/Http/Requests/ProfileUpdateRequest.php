@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
+use App\Models\Accounts;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,7 +22,7 @@ class ProfileUpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(\App\Models\User::class)->ignore($this->user()->id)
+                Rule::unique(\App\Models\Accounts::class)->ignore($this->user()->id)
             ],
             'email' => [
                 'required',
@@ -30,7 +30,7 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                Rule::unique(Accounts::class)->ignore($this->user()->id),
             ],
         ];
     }
