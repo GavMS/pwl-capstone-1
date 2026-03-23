@@ -1,0 +1,11 @@
+# CARA MENJALANKAN PROJECT
+
+Buka dua terminal terpisah:
+
+1. TERMINAL UI (Frontend/Vite):
+   npm run dev
+
+2. TERMINAL SERVER (Backend/Laravel):
+   php artisan serve
+
+Pastikan keduanya tetap berjalan saat Anda sedang coding.

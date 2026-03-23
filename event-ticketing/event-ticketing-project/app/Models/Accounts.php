@@ -2,29 +2,32 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class Accounts extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<\Database\Factories\AccountFactory> */
     use HasFactory, Notifiable;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\AccountFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $table = 'accounts';
-
     protected $fillable = [
         'name',
         'username',
         'email',
         'password',
-        'role',   // <-- Tambahan field role untuk mass assignment
+        'role',
+        'email_verified_at',
     ];
 
     /**
@@ -37,17 +40,21 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-        // Helper method — cek apakah user adalah admin
+    /**
+     * Helper method — cek apakah user adalah admin
+     */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
+    /**
+     * Helper method — cek apakah user adalah organizer
+     */
     public function isOrganizer(): bool
     {
         return $this->role === 'organizer';
     }
-
 
     /**
      * Get the attributes that should be cast.
