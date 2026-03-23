@@ -1,8 +1,0 @@
-// To start the development server, run the following command in your terminal:
-npm run dev
-
-// 
-php artisan serve
-
-// To refresh the database and re-run all seeders, use the following command:
-php artisan migrate:fresh --seed
