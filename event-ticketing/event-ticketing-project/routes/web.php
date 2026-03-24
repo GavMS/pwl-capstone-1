@@ -1,11 +1,24 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    if (! Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $role = Auth::user()->role;
+
+    if ($role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } elseif ($role === 'organizer') {
+        return redirect()->route('organizer.dashboard');
+    }
+
+    return redirect()->route('user.dashboard');
+})->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
