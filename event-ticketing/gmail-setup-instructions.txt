@@ -1,0 +1,40 @@
+How to setup your Gmail to send Password Reset emails
+=====================================================
+
+Because Google no longer supports "Less Secure Apps", you must use an "App Password" to allow your Laravel application to send emails from your personal/business Gmail account.
+
+Step 1: Enable 2-Step Verification for your Google Account
+1. Go to your Google Account (https://myaccount.google.com/)
+2. In the navigation panel, select "Security".
+3. Under "How you sign in to Google", turn on 2-Step Verification if it isn't already enabled (you will need to follow the prompts to configure a phone number/authenticator).
+
+Step 2: Create an App Password
+1. In the same "Security" tab, search for "App passwords" in the search bar at the top, or go directly to https://myaccount.google.com/apppasswords
+2. You may be asked to sign in.
+3. Provide a name for the app password (e.g., "Event Ticketing Laravel App") and click "Create".
+4. A yellow modal will appear with a 16-character password (e.g., "abcd efgh ijkl mnop").
+
+Step 3: Update your Laravel Application's .env file
+1. Go to your project's `.env` file (`event-ticketing/event-ticketing-project/.env`)
+2. Find the `MAIL_` settings (I have already updated the server to hit smtp.gmail.com).
+3. Change `MAIL_USERNAME` to your actual Gmail address.
+4. Change `MAIL_PASSWORD` to the 16-character App Password you just generated (without spaces).
+5. Change `MAIL_FROM_ADDRESS` to the exact same Gmail address so that recipients see who it's from.
+
+It should look something like this:
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME="your-email@gmail.com"
+MAIL_PASSWORD="abcdefghijklmnop"
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS="your-email@gmail.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+Step 4: Restart your local server
+Always restart your `php artisan serve` server and clear the cache if possible whenever you change the `.env` file:
+Run:
+`php artisan optimize:clear`
+`php artisan serve`
+
+Once done, you will be able to send emails to the logged accounts!
