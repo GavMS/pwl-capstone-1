@@ -16,7 +16,7 @@ class AccountSeeder extends Seeder
         Accounts::create([
             'name' => 'Gavin Malik Setiawan',
             'username' => 'GavMS',
-            'email' => '2472042@gmail.com',
+            'email' => '2472042@maranatha.ac.id',
             'password' => '$2y$12$1UdQ9eiPACdYbU6ZTFwS8OC129.Q/K2L2xYZGPzyeskvSAP3byaLy', // 43434343
             'role' => 'admin',
         ]);
@@ -24,7 +24,7 @@ class AccountSeeder extends Seeder
         Accounts::create([
             'name' => 'Yosua Juswandiputra',
             'username' => 'Yosua',
-            'email' => '2472027@gmail.com',
+            'email' => '2472027@maranatha.ac.id',
             'password' => '$2y$12$/93V3Swcbhv9.qTxz9prDeYSv2gBiHV3KIqoxv9iRDLu8NgQOB6c.', // 43434343
             'role' => 'user',
         ]);
@@ -32,7 +32,7 @@ class AccountSeeder extends Seeder
         Accounts::create([
             'name' => 'Archangela Sheilla',
             'username' => 'sourrossie',
-            'email' => '2472014@gmail.com',
+            'email' => '2472014@maranatha.ac.id',
             'password' => '$2y$12$aOtI1PdMvi.i8vQ70Kn7Gep/4WkliKxsDsJJvgJC1wyuJwzr4pzFC', // 43434343
             'role' => 'organizer',
         ]);
