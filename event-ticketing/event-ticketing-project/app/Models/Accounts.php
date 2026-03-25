@@ -27,6 +27,7 @@ class Accounts extends Authenticatable
         'email',
         'password',
         'role',
+        'is_active',
         'email_verified_at',
     ];
 
