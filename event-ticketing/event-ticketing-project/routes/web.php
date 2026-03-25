@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
 
+
     // Event CRUD — Admin
     Route::get('/admin/events',                [EventController::class, 'index'])->name('admin.events.index');
     Route::get('/admin/events/create',         [EventController::class, 'create'])->name('admin.events.create');
@@ -37,6 +38,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/events/{event}/edit',   [EventController::class, 'edit'])->name('admin.events.edit');
     Route::put('/admin/events/{event}',        [EventController::class, 'update'])->name('admin.events.update');
     Route::delete('/admin/events/{event}',     [EventController::class, 'destroy'])->name('admin.events.destroy');
+
+    // User Management
+    Route::get('/admin/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/create', [\App\Http\Controllers\Admin\UserManagementController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::get('/admin/users/{user}/edit', [\App\Http\Controllers\Admin\UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/admin/users/{user}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
+    Route::patch('/admin/users/{user}/toggle-active', [\App\Http\Controllers\Admin\UserManagementController::class, 'toggleActive'])->name('admin.users.toggle');
+
 });
 
 Route::middleware(['auth', 'role:organizer'])->group(function () {
