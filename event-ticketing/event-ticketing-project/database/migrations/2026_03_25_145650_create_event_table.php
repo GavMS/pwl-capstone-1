@@ -15,7 +15,7 @@ return new class extends Migration
             $table->increments('id_event');
             $table->string('title');
             $table->string('description');
-            $table->string('banner');
+            $table->string('banner')->nullable();
             $table->string('location');
             $table->dateTime('date');
             $table->enum('status', ['draft', 'published', 'cancelled', 'completed'])->default('draft');

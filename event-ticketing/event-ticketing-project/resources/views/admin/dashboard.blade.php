@@ -36,8 +36,8 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">12,450</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">+12% from last month</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['total_users']) }}</h4>
+                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">active accounts</p>
                     </div>
 
                     <!-- Stat 2 -->
@@ -48,8 +48,8 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">342</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">+5 new today</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['active_events']) }}</h4>
+                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">published events</p>
                     </div>
 
                     <!-- Stat 3 -->
@@ -60,8 +60,8 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">Rp 125M</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">+18% vs last quarter</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['total_events']) }}</h4>
+                        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">all created events</p>
                     </div>
                 </div>
             </section>

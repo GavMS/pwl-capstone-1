@@ -29,30 +29,30 @@
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2 relative overflow-hidden group">
                         <div class="absolute -right-6 -top-6 w-24 h-24 bg-[#E5E5E3] rounded-full opacity-50 group-hover:scale-150 transition duration-700"></div>
                         <div class="flex items-center justify-between relative z-10">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Tickets Sold</span>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Total Events</span>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">8,240</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 relative z-10"> across 3 active events</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">{{ number_format($stats['total_events']) }}</h4>
+                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 relative z-10">managed events.</p>
                     </div>
 
                     <!-- Stat 2 -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2 relative overflow-hidden group">
                         <div class="absolute -right-6 -top-6 w-24 h-24 bg-[#E5E5E3] rounded-full opacity-50 group-hover:scale-150 transition duration-700"></div>
                         <div class="flex items-center justify-between relative z-10">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Total Revenue</span>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Active Events</span>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">Rp 4.2B</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 relative z-10">estimated payout tomorrow</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">{{ number_format($stats['active_events']) }}</h4>
+                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 relative z-10">published live.</p>
                     </div>
 
                     <!-- Stat 3 -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2 relative overflow-hidden group">
                         <div class="absolute -right-6 -top-6 w-24 h-24 bg-[#E5E5E3] rounded-full opacity-50 group-hover:scale-150 transition duration-700"></div>
                         <div class="flex items-center justify-between relative z-10">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Profile Views</span>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Drafts</span>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">45.2K</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 relative z-10">+24% this week</p>
+                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2 relative z-10">{{ number_format($stats['draft_events']) }}</h4>
+                        <p class="text-[10px] font-bold text-yellow-600 uppercase tracking-widest mt-1 relative z-10">waiting to publish.</p>
                     </div>
                 </div>
             </section>
@@ -69,76 +69,46 @@
                 </div>
                 
                 <div class="flex flex-col gap-5">
-                    
-                    <!-- Event Row 1 -->
-                    <div class="bg-white p-4 sm:p-6 rounded-[2rem] shadow-sm flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
-                        <div class="w-full sm:w-32 h-32 bg-gray-200 rounded-2xl overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1540039155732-d674ce313cb6?q=80&w=400&auto=format&fit=crop" alt="Event" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-grow w-full">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-lg uppercase tracking-widest">Published</span>
-                                <span class="text-xs font-bold text-[#777777]">Dec 5, 2026</span>
+                    @forelse ($events as $event)
+                        <div class="bg-white p-4 sm:p-6 rounded-[2rem] shadow-sm flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
+                            <div class="w-full sm:w-32 h-32 bg-gray-200 rounded-2xl overflow-hidden flex-shrink-0">
+                                @if($event->banner)
+                                    <img src="{{ asset('storage/' . $event->banner) }}" alt="Event" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-[#F4F4F4] text-[#BBBBBB]">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                    </div>
+                                @endif
                             </div>
-                            <h4 class="text-xl font-bold text-[#444444] leading-tight mb-2">Jakarta Music Festival 2026</h4>
-                            
-                            <!-- Progress Bar -->
-                            <div class="w-full mt-4">
-                                <div class="flex justify-between text-[10px] font-bold text-[#777777] uppercase tracking-widest mb-1">
-                                    <span>Tickets Sold: 4,500 / 5,000</span>
-                                    <span>90%</span>
+                            <div class="flex-grow w-full">
+                                <div class="flex items-center gap-3 mb-2">
+                                    @php
+                                        $statusColor = match($event->status) {
+                                            'published' => 'bg-green-100 text-green-700',
+                                            'cancelled' => 'bg-red-100 text-red-700',
+                                            'completed' => 'bg-blue-100 text-blue-700',
+                                            default => 'bg-gray-100 text-gray-600'
+                                        };
+                                    @endphp
+                                    <span class="px-3 py-1 {{ $statusColor }} text-[10px] font-bold rounded-lg uppercase tracking-widest">{{ $event->status }}</span>
+                                    <span class="text-xs font-bold text-[#777777]">{{ $event->date->format('M d, Y') }}</span>
                                 </div>
-                                <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="h-full bg-[#555555] rounded-full" style="width: 90%"></div>
-                                </div>
+                                <h4 class="text-xl font-bold text-[#444444] leading-tight mb-2">{{ $event->title }}</h4>
+                                <p class="text-xs text-[#777777] lowercase line-clamp-1">{{ $event->location }}</p>
                             </div>
-                        </div>
-                        <div class="flex sm:flex-col gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-                            <button class="flex-1 sm:flex-none px-6 py-3 bg-[#555555] text-white rounded-xl font-bold text-sm hover:bg-black transition lowercase flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                edit
-                            </button>
-                            <button class="flex-1 sm:flex-none px-6 py-3 bg-[#F4F4F4] text-[#555555] rounded-xl font-bold text-sm hover:bg-[#EBEBEB] transition lowercase flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                stats
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Event Row 2 -->
-                    <div class="bg-white p-4 sm:p-6 rounded-[2rem] shadow-sm flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
-                        <div class="w-full sm:w-32 h-32 bg-gray-200 rounded-2xl overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=400&auto=format&fit=crop" alt="Event" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-grow w-full">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-lg uppercase tracking-widest">Selling Fast</span>
-                                <span class="text-xs font-bold text-[#777777]">Jan 15, 2027</span>
-                            </div>
-                            <h4 class="text-xl font-bold text-[#444444] leading-tight mb-2">Tech Creator Workshop</h4>
-                            
-                            <!-- Progress Bar -->
-                            <div class="w-full mt-4">
-                                <div class="flex justify-between text-[10px] font-bold text-[#777777] uppercase tracking-widest mb-1">
-                                    <span>Tickets Sold: 80 / 100</span>
-                                    <span>80%</span>
-                                </div>
-                                <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="h-full bg-yellow-400 rounded-full" style="width: 80%"></div>
-                                </div>
+                            <div class="flex sm:flex-col gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+                                <a href="{{ route('organizer.events.edit', $event->id_event) }}" class="flex-1 sm:flex-none px-6 py-3 bg-[#555555] text-white rounded-xl font-bold text-sm hover:bg-black transition lowercase flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    edit
+                                </a>
                             </div>
                         </div>
-                        <div class="flex sm:flex-col gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-                            <button class="flex-1 sm:flex-none px-6 py-3 bg-[#555555] text-white rounded-xl font-bold text-sm hover:bg-black transition lowercase flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                edit
-                            </button>
-                            <button class="flex-1 sm:flex-none px-6 py-3 bg-[#F4F4F4] text-[#555555] rounded-xl font-bold text-sm hover:bg-[#EBEBEB] transition lowercase flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                stats
-                            </button>
+                    @empty
+                        <div class="bg-white p-12 rounded-[2rem] shadow-sm text-center">
+                            <p class="text-[#777777] font-bold lowercase">you haven't created any events yet.</p>
                         </div>
-                    </div>
+                    @endforelse
+                </div>
 
                 </div>
             </section>
