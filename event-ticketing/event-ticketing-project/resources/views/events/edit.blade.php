@@ -82,8 +82,6 @@
                             <select name="status" id="status" required class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] lowercase focus:ring-2 focus:ring-[#555555] shadow-inner">
                                 <option value="draft" {{ old('status', $event->status) == 'draft' ? 'selected' : '' }}>draft</option>
                                 <option value="published" {{ old('status', $event->status) == 'published' ? 'selected' : '' }}>published</option>
-                                <option value="cancelled" {{ old('status', $event->status) == 'cancelled' ? 'selected' : '' }}>cancelled</option>
-                                <option value="completed" {{ old('status', $event->status) == 'completed' ? 'selected' : '' }}>completed</option>
                             </select>
                             @error('status') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
                         </div>
