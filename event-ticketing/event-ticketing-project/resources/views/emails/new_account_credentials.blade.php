@@ -30,7 +30,7 @@
 
         <div class="credentials-box">
             <p>Username: <span>{{ $user->username }}</span></p>
-            <p>Temporary Password: <span>{{ $plainPassword }}</span></p>
+            <p>Password: <span>{{ $plainPassword }}</span></p>
             <p>Role: <span>{{ ucfirst($user->role) }}</span></p>
         </div>
 
