@@ -1,11 +1,7 @@
 <x-guest-layout>
     <div class="min-h-screen flex flex-col">
         <nav class="flex justify-between items-center px-12 py-8 w-full">
-            <div class="text-3xl font-bold text-[#555555]">Logo</div>
-            <div class="flex items-center gap-8">
-                <a href="#" class="text-[#555555] font-medium hover:text-black">Events</a>
-                <a href="{{ route('register') }}" class="bg-[#555555] text-white px-8 py-2.5 rounded-xl font-medium hover:bg-[#444444] transition">Register</a>
-            </div>
+            <div class="text-3xl font-bold text-[#555555]">Flowtix</div>
         </nav>
 
         <div class="flex-grow flex items-center justify-center pb-24">
