@@ -3,164 +3,149 @@
         
         <!-- Header -->
         <header class="bg-white/50 backdrop-blur-md shadow-sm border-b border-gray-200 sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto py-6 px-6 lg:px-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div class="px-10 py-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-[#555555] tracking-tight lowercase">
+                    <h2 class="text-4xl font-extrabold text-[#555555] tracking-tight lowercase">
                         admin overview.
                     </h2>
-                    <p class="text-[#777777] font-medium text-sm lowercase mt-1">
+                    <p class="text-[#777777] font-medium text-base lowercase mt-1">
                         system status & analytics
                     </p>
                 </div>
-                <div class="flex gap-3">
-                    <a href="#" class="inline-block px-5 py-2.5 bg-[#F4F4F4] text-[#555555] rounded-xl font-bold lowercase hover:bg-[#EBEBEB] transition shadow-sm text-sm">
+                <div class="flex gap-4">
+                    <a href="#" class="inline-block px-6 py-3 bg-[#F4F4F4] text-[#555555] rounded-2xl font-bold lowercase hover:bg-[#EBEBEB] transition shadow-sm">
                         settings
                     </a>
-                    <a href="#" class="inline-block px-5 py-2.5 bg-[#555555] text-white rounded-xl font-bold lowercase hover:bg-black transition shadow-sm text-sm">
+                    <a href="#" class="inline-block px-6 py-3 bg-[#555555] text-white rounded-2xl font-bold lowercase hover:bg-black transition shadow-sm">
                         generate report
                     </a>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-6 lg:px-8 mt-12 flex flex-col gap-14">
+        <main class="w-full px-10 mt-12 flex flex-col gap-16">
             
             <!-- Quick Stats -->
             <section>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
                     <!-- Stat 1 -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2">
+                    <div class="bg-white p-10 rounded-[3rem] shadow-sm flex flex-col gap-4 border border-gray-50 flex-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Total Users</span>
-                            <div class="w-8 h-8 rounded-full bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-[0.2em]">Total Users</span>
+                            <div class="w-12 h-12 rounded-2xl bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['total_users']) }}</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">active accounts</p>
+                        <h4 class="text-5xl font-extrabold text-[#444444] tracking-tighter mt-2">{{ number_format($stats['total_users']) }}</h4>
+                        <p class="text-xs font-bold text-green-600 uppercase tracking-widest mt-1">active accounts</p>
                     </div>
 
                     <!-- Stat 2 -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2">
+                    <div class="bg-white p-10 rounded-[3rem] shadow-sm flex flex-col gap-4 border border-gray-50 flex-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Active Events</span>
-                            <div class="w-8 h-8 rounded-full bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-[0.2em]">Active Events</span>
+                            <div class="w-12 h-12 rounded-2xl bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['active_events']) }}</h4>
-                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">published events</p>
+                        <h4 class="text-5xl font-extrabold text-[#444444] tracking-tighter mt-2">{{ number_format($stats['active_events']) }}</h4>
+                        <p class="text-xs font-bold text-green-600 uppercase tracking-widest mt-1">published events</p>
                     </div>
 
                     <!-- Stat 3 -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col gap-2">
+                    <div class="bg-white p-10 rounded-[3rem] shadow-sm flex flex-col gap-4 border border-gray-50 flex-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-[#777777] uppercase tracking-widest">Platform Revenue</span>
-                            <div class="w-8 h-8 rounded-full bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="text-xs font-bold text-[#777777] uppercase tracking-[0.2em]">Platform Revenue</span>
+                            <div class="w-12 h-12 rounded-2xl bg-[#F4F4F4] flex items-center justify-center text-[#555555]">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                         </div>
-                        <h4 class="text-4xl font-extrabold text-[#444444] tracking-tight mt-2">{{ number_format($stats['total_events']) }}</h4>
-                        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">all created events</p>
+                        <h4 class="text-5xl font-extrabold text-[#444444] tracking-tighter mt-2">{{ number_format($stats['total_events']) }}</h4>
+                        <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mt-1">all created events</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Pending Approvals & Logs -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Pending Organizers -->
+            <!-- Data Overview -->
+            <div class="grid grid-cols-1 2xl:grid-cols-2 gap-12">
+                <!-- New Users -->
                 <section>
                     <div class="flex justify-between items-end mb-6">
-                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">pending organizers</h3>
-                        <a href="#" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">view all</a>
+                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">newly joined.</h3>
+                        <a href="{{ route('admin.users.index') }}" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">view all accounts</a>
                     </div>
                     
-                    <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col gap-2 p-3">
-                        
-                        <!-- Item 1 -->
-                        <div class="flex items-center justify-between p-4 bg-[#F4F4F4] rounded-2xl">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-[#555555] font-bold text-sm">
-                                    IS
+                    <div class="bg-white rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col gap-2 p-4 border border-gray-50">
+                        @forelse($new_users as $newUser)
+                            <div class="flex items-center justify-between p-4 hover:bg-[#F4F4F4]/50 rounded-3xl transition group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-[#E5E5E3] flex items-center justify-center text-[#555555] font-bold text-sm uppercase shadow-sm">
+                                        {{ substr($newUser->name, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-[#444444] leading-tight lowercase tracking-tight text-base">{{ $newUser->name }}</h5>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-[10px] font-bold text-[#999999] uppercase tracking-widest">{{ $newUser->role }}</span>
+                                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                            <span class="text-[10px] font-bold text-[#999999] lowercase">{{ $newUser->created_at->diffForHumans() }}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h5 class="font-bold text-[#444444] leading-tight">Ismaya Live</h5>
-                                    <p class="text-xs font-medium text-[#777777]">Requested 2 hours ago</p>
-                                </div>
+                                <a href="{{ route('admin.users.edit', $newUser->id) }}" class="w-10 h-10 bg-white border border-gray-100 text-[#777777] rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm hover:bg-black hover:text-white">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 00-2 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </a>
                             </div>
-                            <div class="flex gap-2">
-                                <button class="w-8 h-8 bg-green-100 text-green-700 rounded-lg flex items-center justify-center hover:bg-green-200 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                </button>
-                                <button class="w-8 h-8 bg-red-100 text-red-700 rounded-lg flex items-center justify-center hover:bg-red-200 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Item 2 -->
-                        <div class="flex items-center justify-between p-4 hover:bg-[#F4F4F4] rounded-2xl transition cursor-pointer">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-[#555555] font-bold text-sm">
-                                    SG
-                                </div>
-                                <div>
-                                    <h5 class="font-bold text-[#444444] leading-tight">Soundrenaline Group</h5>
-                                    <p class="text-xs font-medium text-[#777777]">Requested 5 hours ago</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="w-8 h-8 bg-green-100 text-green-700 rounded-lg flex items-center justify-center hover:bg-green-200 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                </button>
-                                <button class="w-8 h-8 bg-red-100 text-red-700 rounded-lg flex items-center justify-center hover:bg-red-200 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                        
+                        @empty
+                            <p class="p-8 text-center text-[#999999] lowercase italic">no new users yet.</p>
+                        @endforelse
                     </div>
                 </section>
 
-                <!-- System Activity -->
+                <!-- Recent Events -->
                 <section>
                     <div class="flex justify-between items-end mb-6">
-                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">recent activity</h3>
+                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">latest events.</h3>
+                        <a href="{{ route('admin.events.index') }}" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">manage events</a>
                     </div>
                     
-                    <div class="bg-white rounded-[2rem] shadow-sm p-6 relative">
-                        <div class="absolute left-10 top-6 bottom-6 w-px bg-gray-200"></div>
-                        
-                        <div class="flex flex-col gap-6 relative">
-                            <!-- Log 1 -->
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 bg-[#E5E5E3] rounded-full border-4 border-white flex-shrink-0 z-10 flex items-center justify-center text-[#555555]">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <div class="bg-white rounded-[2.5rem] shadow-sm p-6 border border-gray-50">
+                        <div class="flex flex-col gap-8 relative">
+                            @forelse($recent_events as $recentEvent)
+                                <div class="flex gap-5 relative group">
+                                    <!-- Timeline line -->
+                                    @if(!$loop->last)
+                                        <div class="absolute left-6 top-12 bottom-[-2rem] w-px bg-gray-100 group-hover:bg-gray-200 transition"></div>
+                                    @endif
+                                    
+                                    <div class="w-12 h-12 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex-shrink-0 z-10">
+                                        @if($recentEvent->banner)
+                                            <img src="{{ asset('storage/' . $recentEvent->banner) }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full bg-[#F4F4F4] flex items-center justify-center text-[#999999]">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="pt-1 flex-1">
+                                        <h5 class="text-base font-bold text-[#444444] lowercase tracking-tight leading-none">{{ $recentEvent->title }}</h5>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <span class="text-[10px] font-extrabold px-2 py-0.5 bg-[#F4F4F4] text-[#777777] rounded-md uppercase tracking-widest">{{ $recentEvent->status }}</span>
+                                            <span class="text-[10px] font-bold text-[#999999] lowercase">by {{ $recentEvent->organizer->name ?? 'platform' }}</span>
+                                        </div>
+                                        <p class="text-[10px] font-bold text-[#999999] uppercase tracking-widest mt-2">{{ $recentEvent->created_at->format('d M, H:i') }}</p>
+                                    </div>
+                                    <a href="{{ route('admin.events.edit', $recentEvent->id_event) }}" class="inline-flex items-center text-[10px] font-bold text-[#555555] hover:text-black mt-1 lowercase opacity-0 group-hover:opacity-100 transition self-start pt-1">
+                                        details ↗
+                                    </a>
                                 </div>
-                                <div class="pt-1">
-                                    <p class="text-sm font-bold text-[#444444]">System Alert: High Traffic</p>
-                                    <p class="text-xs font-medium text-[#777777] mt-1">Over 5,000 users concurrent during Coldplay ticket sale.</p>
-                                    <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-2 block">10 mins ago</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Log 2 -->
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 bg-[#E5E5E3] rounded-full border-4 border-white flex-shrink-0 z-10 flex items-center justify-center text-[#555555]">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div class="pt-1">
-                                    <p class="text-sm font-bold text-[#444444]">Payment Gateway Synced</p>
-                                    <p class="text-xs font-medium text-[#777777] mt-1">Midtrans batch settlement completed for 3,240 transactions.</p>
-                                    <span class="text-[10px] font-bold text-[#777777] uppercase tracking-widest mt-2 block">1 hour ago</span>
-                                </div>
-                            </div>
+                            @empty
+                                <p class="py-4 text-center text-[#999999] lowercase italic">no recent events.</p>
+                            @endforelse
                         </div>
                     </div>
                 </section>
             </div>
             
         </main>
-
     </div>
 </x-app-layout>

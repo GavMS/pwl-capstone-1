@@ -44,7 +44,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-50 pt-10">
                         <div class="flex flex-col gap-2">
                             <label for="date" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Date & Time</label>
-                            <input type="datetime-local" name="date" id="date" required value="{{ old('date') }}" 
+                            <input type="datetime-local" name="date" id="date" required value="{{ old('date') }}" min="{{ now()->format('Y-m-d\TH:i') }}" 
                                 class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner">
                             @error('date') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
                         </div>
@@ -55,6 +55,44 @@
                                 class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="where's the fun at?">
                             @error('location') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
                         </div>
+                    </div>
+
+                    <!-- Category & Organizer -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-50 pt-10">
+                        <div class="flex flex-col gap-2">
+                            <label for="category_id" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Event Category</label>
+                            <select name="category_id" id="category_id" class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] lowercase focus:ring-2 focus:ring-[#555555] shadow-inner">
+                                <option value="">no category...</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id_category }}" {{ old('category_id') == $category->id_category ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('category_id') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        @if(auth()->user()->role === 'admin')
+                        <div class="flex flex-col gap-2">
+                            <label for="organizer_id" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Assign Organizer</label>
+                            <select name="organizer_id" id="organizer_id" class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] lowercase focus:ring-2 focus:ring-[#555555] shadow-inner">
+                                <option value="">platform / no organizer</option>
+                                @foreach($organizers as $organizer)
+                                    <option value="{{ $organizer->id }}" {{ old('organizer_id') == $organizer->id ? 'selected' : '' }}>
+                                        {{ $organizer->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('organizer_id') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                        </div>
+                        @else
+                        <div class="flex flex-col gap-2 opacity-50">
+                            <label class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Organizer</label>
+                            <div class="w-full px-6 py-4 bg-gray-100 rounded-2xl font-bold text-[#777777] lowercase">
+                                {{ auth()->user()->name }}
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Banner & Status -->

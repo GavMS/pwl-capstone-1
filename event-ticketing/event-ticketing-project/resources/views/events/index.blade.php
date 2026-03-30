@@ -32,6 +32,8 @@
                         <thead>
                             <tr class="border-b border-gray-100">
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Event</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Category</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Organizer</th>
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Date & Location</th>
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Status</th>
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#777777] uppercase tracking-widest text-right">Actions</th>
@@ -55,6 +57,21 @@
                                                 <h5 class="font-bold text-[#444444] leading-tight text-lg lowercase tracking-tight">{{ $event->title }}</h5>
                                                 <p class="text-[10px] font-medium text-[#777777] mt-1 lowercase">{{ Str::limit($event->description, 50) }}</p>
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <div class="inline-flex px-3 py-1 bg-[#F4F4F4] text-[#555555] rounded-lg text-[10px] font-bold uppercase tracking-widest leading-none border border-gray-100">
+                                            {{ $event->category->name ?? 'uncategorized' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-[#777777] uppercase">
+                                                {{ substr($event->organizer->name ?? 'PL', 0, 2) }}
+                                            </div>
+                                            <span class="text-xs font-bold text-[#555555] lowercase tracking-tight">
+                                                {{ $event->organizer->name ?? 'platform' }}
+                                            </span>
                                         </div>
                                     </td>
                                     <td class="px-8 py-6">
@@ -83,7 +100,7 @@
                                         </span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
-                                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="flex justify-end gap-2 transition-opacity">
                                             <a href="{{ route($prefix . '.events.edit', $event->id_event) }}" class="w-9 h-9 flex items-center justify-center bg-[#F4F4F4] text-[#555555] rounded-xl hover:bg-black hover:text-white transition shadow-sm">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 00-2 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </a>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Events;
+use App\Models\EventCategories;
+use App\Models\Accounts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,7 +23,14 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Events::latest()->paginate(10);
+        $query = Events::latest();
+        
+        // Filter by organizer if the user is an organizer
+        if (auth()->user()->role === 'organizer') {
+            $query->where('organizer_id', auth()->id());
+        }
+
+        $events = $query->paginate(10);
         $prefix = $this->routePrefix();
         return view('events.index', compact('events', 'prefix'));
     }
@@ -31,8 +40,11 @@ class EventController extends Controller
      */
     public function create()
     {
-        $prefix = $this->routePrefix();
-        return view('events.create', compact('prefix'));
+        $prefix     = $this->routePrefix();
+        $categories = EventCategories::all();
+        $organizers = Accounts::where('role', 'organizer')->get();
+        
+        return view('events.create', compact('prefix', 'categories', 'organizers'));
     }
 
     /**
@@ -41,16 +53,25 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'organizer_id' => 'nullable|exists:accounts,id',
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
-            'date'        => 'required|date',
+            'date'        => 'required|date|after_or_equal:today',
             'status'      => 'required|in:draft,published,cancelled,completed',
+        ], [
+            'date.after_or_equal' => 'tanggal event tidak boleh tanggal yang sudah lewat.',
         ]);
 
         if ($request->hasFile('banner')) {
             $validated['banner'] = $request->file('banner')->store('banners', 'public');
+        }
+
+        // If the user is an organizer, force the organizer_id to be their own ID
+        if (auth()->user()->role === 'organizer') {
+            $validated['organizer_id'] = auth()->id();
         }
 
         Events::create($validated);
@@ -65,8 +86,16 @@ class EventController extends Controller
      */
     public function edit(Events $event)
     {
-        $prefix = $this->routePrefix();
-        return view('events.edit', compact('event', 'prefix'));
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $prefix     = $this->routePrefix();
+        $categories = EventCategories::all();
+        $organizers = Accounts::where('role', 'organizer')->get();
+        
+        return view('events.edit', compact('event', 'prefix', 'categories', 'organizers'));
     }
 
     /**
@@ -74,13 +103,22 @@ class EventController extends Controller
      */
     public function update(Request $request, Events $event)
     {
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
+            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'organizer_id' => 'nullable|exists:accounts,id',
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
-            'date'        => 'required|date',
+            'date'        => 'required|date|after_or_equal:today',
             'status'      => 'required|in:draft,published,cancelled,completed',
+        ], [
+            'date.after_or_equal' => 'tanggal event tidak boleh tanggal yang sudah lewat.',
         ]);
 
         if ($request->hasFile('banner')) {
@@ -89,6 +127,11 @@ class EventController extends Controller
                 Storage::disk('public')->delete($event->banner);
             }
             $validated['banner'] = $request->file('banner')->store('banners', 'public');
+        }
+
+        // Prevent organizers from changing the organizer_id
+        if (auth()->user()->role === 'organizer') {
+            unset($validated['organizer_id']);
         }
 
         $event->update($validated);
@@ -103,6 +146,11 @@ class EventController extends Controller
      */
     public function destroy(Events $event)
     {
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($event->banner) {
             Storage::disk('public')->delete($event->banner);
         }

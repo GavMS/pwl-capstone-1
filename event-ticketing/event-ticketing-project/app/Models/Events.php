@@ -23,6 +23,8 @@ class Events extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'category_id',
+        'organizer_id',
         'title',
         'description',
         'banner',
@@ -53,5 +55,21 @@ class Events extends Model
     public function isCancelled(): bool
     {
         return $this->status === 'cancelled';
+    }
+
+    /**
+     * Get the category that owns the event.
+     */
+    public function category()
+    {
+        return $this->belongsTo(EventCategories::class, 'category_id', 'id_category');
+    }
+
+    /**
+     * Get the organizer that manages the event.
+     */
+    public function organizer()
+    {
+        return $this->belongsTo(Accounts::class, 'organizer_id', 'id');
     }
 }

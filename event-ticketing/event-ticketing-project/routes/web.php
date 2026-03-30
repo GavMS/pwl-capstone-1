@@ -47,6 +47,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/users/{user}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
     Route::patch('/admin/users/{user}/toggle-active', [\App\Http\Controllers\Admin\UserManagementController::class, 'toggleActive'])->name('admin.users.toggle');
 
+    // Event Categories
+    Route::resource('/admin/categories', \App\Http\Controllers\Admin\EventCategoryController::class)->names([
+        'index'   => 'admin.categories.index',
+        'create'  => 'admin.categories.create',
+        'store'   => 'admin.categories.store',
+        'edit'    => 'admin.categories.edit',
+        'update'  => 'admin.categories.update',
+        'destroy' => 'admin.categories.destroy',
+    ]);
+
 });
 
 Route::middleware(['auth', 'role:organizer'])->group(function () {
