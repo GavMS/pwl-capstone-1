@@ -45,7 +45,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-50 pt-10">
                         <div class="flex flex-col gap-2">
                             <label for="date" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Date & Time</label>
-                            <input type="datetime-local" name="date" id="date" required value="{{ old('date', $event->date->format('Y-m-d\TH:i')) }}" min="{{ now()->format('Y-m-d\TH:i') }}" 
+                            <input type="datetime-local" name="date" id="date" required value="{{ old('date', $event->date->format('Y-m-d\TH:i')) }}" min="{{ now()->addDays(30)->format('Y-m-d\TH:i') }}" 
                                 class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner">
                             @error('date') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
                         </div>

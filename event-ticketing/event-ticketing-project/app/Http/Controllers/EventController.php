@@ -59,10 +59,10 @@ class EventController extends Controller
             'description' => 'required|string',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
-            'date'        => 'required|date|after_or_equal:today',
+            'date'        => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
             'status'      => 'required|in:draft,published,cancelled,completed',
         ], [
-            'date.after_or_equal' => 'tanggal event tidak boleh tanggal yang sudah lewat.',
+            'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
         ]);
 
         if ($request->hasFile('banner')) {
@@ -115,10 +115,10 @@ class EventController extends Controller
             'description' => 'required|string',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
-            'date'        => 'required|date|after_or_equal:today',
+            'date'        => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
             'status'      => 'required|in:draft,published,cancelled,completed',
         ], [
-            'date.after_or_equal' => 'tanggal event tidak boleh tanggal yang sudah lewat.',
+            'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
         ]);
 
         if ($request->hasFile('banner')) {
