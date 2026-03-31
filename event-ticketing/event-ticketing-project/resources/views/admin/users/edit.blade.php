@@ -66,16 +66,17 @@
                         @enderror
                     </div>
 
-                    <!-- Status (read-only display) -->
+                    <!-- Status -->
                     <div>
-                        <label class="block text-xs font-bold text-[#555555] uppercase tracking-widest mb-2">Status</label>
-                        <div class="flex items-center gap-2 px-4 py-3 bg-[#F4F4F4] rounded-xl">
-                            <span class="w-2 h-2 rounded-full {{ $user->is_active ? 'bg-green-500' : 'bg-red-500' }}"></span>
-                            <span class="text-sm font-semibold text-[#444444]">
-                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                            <span class="text-xs text-[#777777]">(manage from the user list)</span>
-                        </div>
+                        <label for="is_active" class="block text-xs font-bold text-[#555555] uppercase tracking-widest mb-2">Status</label>
+                        <select id="is_active" name="is_active" required
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#444444] focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white">
+                            <option value="1" {{ old('is_active', $user->is_active) ? 'selected' : '' }}>🟢 Active</option>
+                            <option value="0" {{ !old('is_active', $user->is_active) ? 'selected' : '' }}>🔴 Inactive</option>
+                        </select>
+                        @error('is_active')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Actions -->
