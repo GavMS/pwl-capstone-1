@@ -91,16 +91,40 @@ class UserManagementController extends Controller
     public function update(Request $request, Accounts $user)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:accounts,username,' . $user->id],
-            'email'    => ['required', 'email', 'max:255', 'unique:accounts,email,' . $user->id],
+            'name'      => ['required', 'string', 'max:255'],
+            'username'  => ['required', 'string', 'max:255', 'unique:accounts,username,' . $user->id],
+            'email'     => ['required', 'email', 'max:255', 'unique:accounts,email,' . $user->id],
+            'is_active' => ['required', 'boolean'],
         ]);
 
+        $newStatus = (bool) $request->is_active;
+        $wasActive = $user->is_active;
+
+        // Prevent admin from deactivating themselves
+        if (!$newStatus && $user->id === auth()->id()) {
+            return redirect()->back()
+                             ->withInput()
+                             ->withErrors(['is_active' => 'You cannot deactivate your own account.']);
+        }
+
         $user->update([
-            'name'     => $request->name,
-            'username' => $request->username,
-            'email'    => $request->email,
+            'name'      => $request->name,
+            'username'  => $request->username,
+            'email'     => $request->email,
+            'is_active' => $newStatus,
         ]);
+
+        // Force-logout and send notification if newly deactivated
+        if (!$newStatus && $wasActive) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            
+            Mail::send('emails.account_deactivated', ['user' => $user], function ($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Your Flowtix Account Has Been Deactivated');
+            });
+        } elseif (!$newStatus) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        }
 
         return redirect()->route('admin.users.index')
                          ->with('success', "User \"{$user->name}\" updated successfully.");
@@ -122,13 +146,74 @@ class UserManagementController extends Controller
 
         $user->update(['is_active' => $newStatus]);
 
-        // Force-logout by deleting all sessions belonging to this user
+        // Force-logout and email if deactivated
         if (!$newStatus) {
             DB::table('sessions')->where('user_id', $user->id)->delete();
+            
+            Mail::send('emails.account_deactivated', ['user' => $user], function ($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Your Flowtix Account Has Been Deactivated');
+            });
         }
 
         $action = $newStatus ? 'activated' : 'deactivated';
         return redirect()->route('admin.users.index')
                          ->with('success', "User \"{$user->name}\" has been {$action}.");
+    }
+
+    /**
+     * Smart Delete — only delete if all safety conditions are met.
+     */
+    public function destroy(Accounts $user)
+    {
+        // 1. Cannot delete yourself
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users.index')
+                             ->with('error', 'You cannot delete your own account.');
+        }
+
+        // 2. Must keep at least 1 admin
+        if ($user->role === 'admin') {
+            $adminCount = Accounts::where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                return redirect()->route('admin.users.index')
+                                 ->with('error', "Cannot delete \"{$user->name}\". There must be at least one admin account remaining.");
+            }
+        }
+
+        // 3. Cannot delete if user has transactions
+        $hasTransactions = DB::table('transaction')->where('accounts_id', $user->id)->exists();
+        if ($hasTransactions) {
+            return redirect()->route('admin.users.index')
+                             ->with('error', "Cannot delete \"{$user->name}\". This account has existing transactions.");
+        }
+
+        // 4. Cannot delete if user has e-tickets
+        $hasTickets = DB::table('e-tickets')->where('accounts_id', $user->id)->exists();
+        if ($hasTickets) {
+            return redirect()->route('admin.users.index')
+                             ->with('error', "Cannot delete \"{$user->name}\". This account has issued e-tickets.");
+        }
+
+        // 5. Cannot delete if organizer has created events
+        if ($user->role === 'organizer') {
+            $hasEvents = DB::table('event')->where('accounts_id', $user->id)->exists();
+            if ($hasEvents) {
+                return redirect()->route('admin.users.index')
+                                 ->with('error', "Cannot delete \"{$user->name}\". This organizer account has created events.");
+            }
+        }
+
+        // Safe to delete — clean up waiting_lists first (non-critical data)
+        DB::table('waiting_lists')->where('accounts_id', $user->id)->delete();
+
+        // Force-logout the user being deleted
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        $name = $user->name;
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+                         ->with('success', "User \"{$name}\" has been permanently deleted.");
     }
 }

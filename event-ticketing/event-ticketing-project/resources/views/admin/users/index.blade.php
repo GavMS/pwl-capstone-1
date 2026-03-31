@@ -122,6 +122,13 @@
                                                 {{ $user->is_active ? 'deactivate' : 'activate' }}
                                             </button>
                                         </form>
+
+                                        <!-- Delete -->
+                                        <button type="button"
+                                            onclick="openDeleteModal('{{ $user->id }}', '{{ addslashes($user->name) }}')"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase transition bg-red-100 text-red-700 hover:bg-red-200">
+                                            delete
+                                        </button>
                                         @else
                                         <span class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase text-[#BBBBBB] bg-[#F9F9F9] cursor-not-allowed" title="Cannot deactivate your own account">
                                             you
@@ -150,4 +157,57 @@
 
         </main>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 max-w-md w-full mx-4 animate-fade-in">
+            <div class="flex items-center gap-4 mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-[#333333]">delete account?</h3>
+                    <p class="text-sm text-[#777777] mt-0.5">this action cannot be undone.</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-[#555555] mb-6 leading-relaxed">
+                You are about to permanently delete the account of
+                <strong id="modal-user-name" class="text-[#333333]"></strong>.
+                This will only succeed if the account has no transactions, e-tickets, or events.
+            </p>
+
+            <form id="delete-form" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm lowercase hover:bg-red-700 transition">
+                        yes, delete permanently
+                    </button>
+                    <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 py-3 bg-[#F4F4F4] text-[#555555] rounded-xl font-bold text-sm lowercase hover:bg-[#E5E5E3] transition">
+                        cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openDeleteModal(userId, userName) {
+            document.getElementById('modal-user-name').textContent = userName;
+            document.getElementById('delete-form').action = '/admin/users/' + userId;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+        // Close on backdrop click
+        document.getElementById('delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+    </script>
 </x-app-layout>
