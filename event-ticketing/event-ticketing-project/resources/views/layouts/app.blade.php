@@ -28,6 +28,35 @@
         </div>
 
         <script>
+            // Global SweetAlert2 notification listeners
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'success.',
+                    text: "{{ session('success') }}",
+                    confirmButtonColor: '#000000',
+                    customClass: {
+                        popup: 'rounded-[2rem] p-6',
+                        title: 'text-2xl font-bold lowercase tracking-tight text-[#444444]',
+                        htmlContainer: 'text-[#777777] text-sm font-medium lowercase'
+                    }
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ups.',
+                    text: "{{ session('error') }}",
+                    confirmButtonColor: '#ef4444',
+                    customClass: {
+                        popup: 'rounded-[2rem] p-6',
+                        title: 'text-2xl font-bold lowercase tracking-tight text-[#444444]',
+                        htmlContainer: 'text-[#777777] text-sm font-medium lowercase'
+                    }
+                });
+            @endif
+
             function confirmLogout(event) {
                 event.preventDefault();
                 Swal.fire({

@@ -1,5 +1,5 @@
 <?php
-
+// Fresh re-write to force indexing
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +29,7 @@ class TicketType extends Model
      */
     public function events()
     {
-        return $this->belongsToMany(Events::class, 'event_ticket_types', 'ticket_type_id', 'event_id')
+        return $this->belongsToMany(\App\Models\Events::class, 'event_ticket_types', 'ticket_type_id', 'event_id')
                     ->withPivot('price', 'stock')
                     ->withTimestamps();
     }

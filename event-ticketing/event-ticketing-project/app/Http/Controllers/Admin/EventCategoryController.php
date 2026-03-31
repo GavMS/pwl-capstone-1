@@ -75,11 +75,15 @@ class EventCategoryController extends Controller
      */
     public function destroy(EventCategories $category)
     {
-        // Check if there are events using this category? 
-        // Migration has set null on delete, so it should be fine.
+        // Smart Delete: Cek apakah kategori ini sedang dipakai di tabel event
+        if ($category->events()->exists()) {
+            return redirect()->back()
+                ->with('error', 'cannot delete category. this category is currently being used by active events.');
+        }
+
         $category->delete();
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil dihapus!');
+            ->with('success', 'category deleted successfully.');
     }
 }
