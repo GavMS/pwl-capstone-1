@@ -125,6 +125,62 @@
                         </div>
                     </div>
 
+                    <!-- Ticket Configuration -->
+                    <div class="border-t border-gray-50 pt-10" x-data="{ 
+                        tickets: @js(old('tickets', $event->ticketTypes->map(fn($t) => ['ticket_type_id' => $t->id_ticket_type, 'price' => $t->pivot->price, 'stock' => $t->pivot->stock]))),
+                        addTicket() {
+                            this.tickets.push({ ticket_type_id: '', price: '', stock: '' });
+                        },
+                        removeTicket(index) {
+                            if(this.tickets.length > 1) this.tickets.splice(index, 1);
+                        }
+                    }">
+                        <div class="flex items-center justify-between mb-6 ml-1">
+                            <div>
+                                <h4 class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest">ticket configurations</h4>
+                                <p class="text-[10px] text-[#999999] lowercase mt-1 font-medium">update what kinds of tickets you are selling</p>
+                            </div>
+                            <button type="button" @click="addTicket()" class="px-4 py-2 bg-[#F4F4F4] text-[#555555] rounded-xl text-[10px] font-extrabold uppercase tracking-widest hover:bg-[#555555] hover:text-white transition shadow-sm">
+                                + add ticket type
+                            </button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <template x-for="(ticket, index) in tickets" :key="index">
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-[#F9F9F8] p-6 rounded-[2rem] border border-gray-100 relative group/ticket">
+                                    <div class="md:col-span-5 flex flex-col gap-2">
+                                        <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">ticket type</label>
+                                        <select :name="'tickets['+index+'][ticket_type_id]'" x-model="ticket.ticket_type_id" required 
+                                            class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
+                                            <option value="">select type...</option>
+                                            @foreach($ticketTypes as $type)
+                                                <option value="{{ $type->id_ticket_type }}">{{ $type->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-3 flex flex-col gap-2">
+                                        <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">price (IDR)</label>
+                                        <input type="number" :name="'tickets['+index+'][price]'" x-model="ticket.price" required placeholder="e.g. 150000"
+                                            class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
+                                    </div>
+                                    <div class="md:col-span-3 flex flex-col gap-2">
+                                        <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">stock (slots)</label>
+                                        <input type="number" :name="'tickets['+index+'][stock]'" x-model="ticket.stock" required placeholder="e.g. 100"
+                                            class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
+                                    </div>
+                                    <div class="md:col-span-1 flex items-end justify-center pb-1">
+                                        <button type="button" @click="removeTicket(index)" x-show="tickets.length > 1"
+                                            class="w-10 h-10 flex items-center justify-center bg-white text-red-300 rounded-xl hover:bg-red-50 hover:text-red-500 transition shadow-sm border border-gray-100">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        @error('tickets') <p class="text-[10px] text-red-500 font-bold mt-4 ml-1 lowercase">{{ $message }}</p> @enderror
+                    </div>
+
                     <!-- Submit -->
                     <div class="pt-8 border-t border-gray-50 flex justify-end gap-3">
                         <button type="button" onclick="confirmEventAction('edit-event-form', 'update this event')" class="w-full md:w-auto px-10 py-5 bg-[#555555] text-white rounded-3xl font-extrabold lowercase hover:bg-black transition shadow-lg shadow-gray-200">

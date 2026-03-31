@@ -1,0 +1,94 @@
+<x-app-layout>
+    <div class="min-h-screen bg-[#E5E5E3] font-sans antialiased pb-24">
+        
+        <!-- Header -->
+        <header class="bg-white/50 backdrop-blur-md shadow-sm border-b border-gray-200 sticky top-0 z-10 transition-all">
+            <div class="max-w-7xl mx-auto py-6 px-6 lg:px-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                <div class="flex items-center gap-6">
+                    <a href="{{ route('admin.ticket-types.index') }}" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#555555] hover:bg-black hover:text-white transition-all shadow-sm border border-gray-100 group">
+                        <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </a>
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-[#555555] tracking-tight lowercase">
+                            new ticket type.
+                        </h2>
+                        <p class="text-[#777777] font-medium text-sm lowercase mt-1">
+                            define a global ticket classification
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-3xl mx-auto px-6 lg:px-8 mt-12 animate-fade-in-up">
+            <div class="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100 p-10 relative group">
+                <div class="absolute -right-16 -top-16 w-48 h-48 bg-[#F9F9F8] rounded-full group-hover:scale-110 transition duration-1000 rotate-12"></div>
+                
+                <div class="relative z-10 text-center mb-12">
+                    <div class="w-20 h-20 bg-[#F4F4F4] text-[#555555] rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-sm border border-gray-50 group-hover:rotate-12 transition-transform duration-500">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-[#444444] tracking-tight lowercase">ticket details</h3>
+                </div>
+
+                <form action="{{ route('admin.ticket-types.store') }}" method="POST" id="create-ticket-type-form" class="relative z-10">
+                    @csrf
+                    
+                    <div class="space-y-10">
+                        <!-- Name Field -->
+                        <div class="relative">
+                            <label for="name" class="block text-xs font-bold text-[#777777] uppercase tracking-widest mb-4 ml-1">Type name</label>
+                            <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="e.g. VIP, VVIP, Regular..." 
+                                class="w-full px-8 py-5 bg-[#F4F4F4] border-none rounded-2xl focus:ring-4 focus:ring-[#555555]/10 focus:bg-white transition-all text-[#444444] font-bold text-lg tracking-tight placeholder:text-[#999999]/50" required>
+                            @error('name')
+                                <p class="mt-2 text-xs font-bold text-red-500 ml-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Capacity Field -->
+                        <div class="relative">
+                            <label for="capacity" class="block text-xs font-bold text-[#777777] uppercase tracking-widest mb-4 ml-1">Default Capacity (Optional)</label>
+                            <input type="number" name="capacity" id="capacity" value="{{ old('capacity') }}" placeholder="e.g. 100, 500, or leave empty for unlimited" 
+                                class="w-full px-8 py-5 bg-[#F4F4F4] border-none rounded-2xl focus:ring-4 focus:ring-[#555555]/10 focus:bg-white transition-all text-[#444444] font-bold text-lg lowercase tracking-tight placeholder:text-[#999999]/50">
+                            @error('capacity')
+                                <p class="mt-2 text-xs font-bold text-red-500 ml-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="pt-6">
+                            <button type="button" onclick="confirmSave('create-ticket-type-form')" class="w-full py-5 bg-[#555555] text-white rounded-[2rem] font-bold text-lg lowercase hover:bg-black transition-all shadow-lg active:scale-95 group">
+                                save ticket type.
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    @push('scripts')
+    <script>
+        function confirmSave(formId) {
+            Swal.fire({
+                title: 'save new ticket type?',
+                text: "do you want to apply these details globally?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#555555',
+                cancelButtonColor: '#F4F4F4',
+                confirmButtonText: 'yes, save!',
+                cancelButtonText: 'cancel',
+                customClass: {
+                    popup: 'rounded-[2rem]',
+                    confirmButton: 'rounded-xl font-bold px-6 py-3 text-white',
+                    cancelButton: 'rounded-xl font-bold px-6 py-3 text-[#777777]'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            })
+        }
+    </script>
+    @endpush
+</x-app-layout>

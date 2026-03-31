@@ -72,4 +72,14 @@ class Events extends Model
     {
         return $this->belongsTo(Accounts::class, 'organizer_id', 'id');
     }
+
+    /**
+     * Get the ticket types for this event.
+     */
+    public function ticketTypes()
+    {
+        return $this->belongsToMany(TicketType::class, 'event_ticket_types', 'event_id', 'ticket_type_id')
+                    ->withPivot('price', 'stock')
+                    ->withTimestamps();
+    }
 }
