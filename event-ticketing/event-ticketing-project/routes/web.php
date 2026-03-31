@@ -48,18 +48,33 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/users/{user}/toggle-active', [\App\Http\Controllers\Admin\UserManagementController::class, 'toggleActive'])->name('admin.users.toggle');
     Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('admin.users.destroy');
 
+    // Event Categories
+    Route::resource('/admin/categories', \App\Http\Controllers\Admin\EventCategoryController::class)->names([
+        'index'   => 'admin.categories.index',
+        'create'  => 'admin.categories.create',
+        'store'   => 'admin.categories.store',
+        'edit'    => 'admin.categories.edit',
+        'update'  => 'admin.categories.update',
+        'destroy' => 'admin.categories.destroy',
+    ]);
+
+    // Ticket Types
+    Route::resource('/admin/ticket-types', \App\Http\Controllers\TicketTypeController::class)->names([
+        'index'   => 'admin.ticket-types.index',
+        'create'  => 'admin.ticket-types.create',
+        'store'   => 'admin.ticket-types.store',
+        'edit'    => 'admin.ticket-types.edit',
+        'update'  => 'admin.ticket-types.update',
+        'destroy' => 'admin.ticket-types.destroy',
+    ]);
+
 });
 
 Route::middleware(['auth', 'role:organizer'])->group(function () {
     Route::get('/organizer/dashboard', [\App\Http\Controllers\OrganizerController::class, 'dashboard'])->name('organizer.dashboard');
 
-    // Event CRUD — Organizer
-    Route::get('/organizer/events',                [EventController::class, 'index'])->name('organizer.events.index');
-    Route::get('/organizer/events/create',         [EventController::class, 'create'])->name('organizer.events.create');
-    Route::post('/organizer/events',               [EventController::class, 'store'])->name('organizer.events.store');
-    Route::get('/organizer/events/{event}/edit',   [EventController::class, 'edit'])->name('organizer.events.edit');
-    Route::put('/organizer/events/{event}',        [EventController::class, 'update'])->name('organizer.events.update');
-    Route::delete('/organizer/events/{event}',     [EventController::class, 'destroy'])->name('organizer.events.destroy');
+    // Event View Only — Organizer
+    Route::get('/organizer/events', [EventController::class, 'index'])->name('organizer.events.index');
 });
 
 Route::middleware(['auth', 'role:user'])->group(function () {

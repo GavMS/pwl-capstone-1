@@ -14,11 +14,14 @@ class AdminController extends Controller
         $user = auth()->user();
         
         $stats = [
-            'total_users'  => Accounts::count(),
-            'total_events' => Events::count(),
+            'total_users'   => Accounts::count(),
+            'total_events'  => Events::count(),
             'active_events' => Events::where('status', 'published')->count(),
         ];
 
-        return view('admin.dashboard', compact('user', 'stats'));
+        $new_users     = Accounts::latest()->take(5)->get();
+        $recent_events = Events::with('category', 'organizer')->latest()->take(5)->get();
+
+        return view('admin.dashboard', compact('user', 'stats', 'new_users', 'recent_events'));
     }
 }

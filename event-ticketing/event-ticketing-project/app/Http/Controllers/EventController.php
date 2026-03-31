@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Events;
+use App\Models\EventCategories;
+use App\Models\Accounts;
+use App\Models\TicketType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,7 +24,14 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Events::latest()->paginate(10);
+        $query = Events::latest();
+        
+        // Filter by organizer if the user is an organizer
+        if (auth()->user()->role === 'organizer') {
+            $query->where('organizer_id', auth()->id());
+        }
+
+        $events = $query->paginate(10);
         $prefix = $this->routePrefix();
         return view('events.index', compact('events', 'prefix'));
     }
@@ -31,8 +41,12 @@ class EventController extends Controller
      */
     public function create()
     {
-        $prefix = $this->routePrefix();
-        return view('events.create', compact('prefix'));
+        $prefix     = $this->routePrefix();
+        $categories = EventCategories::all();
+        $organizers = Accounts::where('role', 'organizer')->get();
+        $ticketTypes = TicketType::all();
+        
+        return view('events.create', compact('prefix', 'categories', 'organizers', 'ticketTypes'));
     }
 
     /**
@@ -41,19 +55,43 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'organizer_id' => 'nullable|exists:accounts,id',
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
-            'date'        => 'required|date',
+            'date'        => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
             'status'      => 'required|in:draft,published,cancelled,completed',
+            'tickets'     => 'required|array|min:1',
+            'tickets.*.ticket_type_id' => 'required|exists:ticket_types,id_ticket_type',
+            'tickets.*.price' => 'required|integer|min:0',
+            'tickets.*.stock' => 'required|integer|min:1',
+        ], [
+            'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
+            'tickets.required' => 'minimal satu jenis tiket harus ditambahkan.',
         ]);
 
         if ($request->hasFile('banner')) {
             $validated['banner'] = $request->file('banner')->store('banners', 'public');
         }
 
-        Events::create($validated);
+        // If the user is an organizer, force the organizer_id to be their own ID
+        if (auth()->user()->role === 'organizer') {
+            $validated['organizer_id'] = auth()->id();
+        }
+
+        $event = Events::create($validated);
+
+        // Sync Ticket Types
+        $tickets = [];
+        foreach ($request->tickets as $ticket) {
+            $tickets[$ticket['ticket_type_id']] = [
+                'price' => $ticket['price'],
+                'stock' => $ticket['stock'],
+            ];
+        }
+        $event->ticketTypes()->sync($tickets);
 
         $prefix = $this->routePrefix();
         return redirect()->route("{$prefix}.events.index")
@@ -65,8 +103,18 @@ class EventController extends Controller
      */
     public function edit(Events $event)
     {
-        $prefix = $this->routePrefix();
-        return view('events.edit', compact('event', 'prefix'));
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $prefix     = $this->routePrefix();
+        $categories = EventCategories::all();
+        $organizers = Accounts::where('role', 'organizer')->get();
+        $ticketTypes = TicketType::all();
+        $event->load('ticketTypes');
+        
+        return view('events.edit', compact('event', 'prefix', 'categories', 'organizers', 'ticketTypes'));
     }
 
     /**
@@ -74,13 +122,27 @@ class EventController extends Controller
      */
     public function update(Request $request, Events $event)
     {
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'required|string',
-            'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'location'    => 'required|string|max:255',
-            'date'        => 'required|date',
-            'status'      => 'required|in:draft,published,cancelled,completed',
+            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'organizer_id' => 'nullable|exists:accounts,id',
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string',
+            'banner'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'location'     => 'required|string|max:255',
+            'date'         => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
+            'status'       => 'required|in:draft,published,cancelled,completed',
+            'tickets'      => 'required|array|min:1',
+            'tickets.*.ticket_type_id' => 'required|exists:ticket_types,id_ticket_type',
+            'tickets.*.price' => 'required|integer|min:0',
+            'tickets.*.stock' => 'required|integer|min:1',
+        ], [
+            'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
+            'tickets.required' => 'minimal satu jenis tiket harus ditambahkan.',
         ]);
 
         if ($request->hasFile('banner')) {
@@ -91,7 +153,22 @@ class EventController extends Controller
             $validated['banner'] = $request->file('banner')->store('banners', 'public');
         }
 
+        // Prevent organizers from changing the organizer_id
+        if (auth()->user()->role === 'organizer') {
+            unset($validated['organizer_id']);
+        }
+
         $event->update($validated);
+
+        // Sync Ticket Types
+        $tickets = [];
+        foreach ($request->tickets as $ticket) {
+            $tickets[$ticket['ticket_type_id']] = [
+                'price' => $ticket['price'],
+                'stock' => $ticket['stock'],
+            ];
+        }
+        $event->ticketTypes()->sync($tickets);
 
         $prefix = $this->routePrefix();
         return redirect()->route("{$prefix}.events.index")
@@ -103,6 +180,11 @@ class EventController extends Controller
      */
     public function destroy(Events $event)
     {
+        // Authorization check for organizers
+        if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($event->banner) {
             Storage::disk('public')->delete($event->banner);
         }
