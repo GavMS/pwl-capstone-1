@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="min-h-screen flex flex-col">
         <nav class="flex justify-between items-center px-12 py-8 w-full">
-            <div class="text-3xl font-bold text-[#555555]">Logo</div>
+            <div class="text-3xl font-bold text-[#555555]">Flowtix</div>
             <div class="flex items-center gap-8">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
