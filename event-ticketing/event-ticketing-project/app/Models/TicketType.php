@@ -21,7 +21,7 @@ class TicketType extends Model
      */
     protected $fillable = [
         'name',
-        'capacity',
+        'description',
     ];
 
     /**

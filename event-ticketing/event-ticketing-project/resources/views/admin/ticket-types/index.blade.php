@@ -40,7 +40,7 @@
                         <thead>
                             <tr class="border-b border-gray-50">
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#999999] uppercase tracking-widest">Type Name</th>
-                                <th class="px-8 py-6 text-[10px] font-bold text-[#999999] uppercase tracking-widest">Default Capacity</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-[#999999] uppercase tracking-widest">Description</th>
                                 <th class="px-8 py-6 text-[10px] font-bold text-[#999999] uppercase tracking-widest text-right">actions</th>
                             </tr>
                         </thead>
@@ -51,8 +51,8 @@
                                         <div class="font-bold text-[#444444] text-lg tracking-tight">{{ $type->name }}</div>
                                     </td>
                                     <td class="px-8 py-6">
-                                        <span class="px-3 py-1 bg-[#F4F4F4] text-[#777777] rounded-lg text-xs font-bold lowercase">
-                                            {{ $type->capacity ?? 'Unlimited' }} attendees
+                                        <span class="text-[#777777] text-sm font-medium">
+                                            {{ Str::limit($type->description, 50) }}
                                         </span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
