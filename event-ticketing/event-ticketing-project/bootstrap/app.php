@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
                 return route('user.dashboard', absolute: false);
             }
-            return route('dashboard', absolute: false);
+            return route('login');
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
