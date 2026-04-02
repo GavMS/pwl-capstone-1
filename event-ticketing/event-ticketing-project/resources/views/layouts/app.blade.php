@@ -33,7 +33,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'success.',
-                    text: "{{ session('success') }}",
+                    text: {!! json_encode(session('success')) !!},
                     confirmButtonColor: '#000000',
                     customClass: {
                         popup: 'rounded-[2rem] p-6',
@@ -47,7 +47,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'ups.',
-                    text: "{{ session('error') }}",
+                    text: {!! json_encode(session('error')) !!},
                     confirmButtonColor: '#ef4444',
                     customClass: {
                         popup: 'rounded-[2rem] p-6',

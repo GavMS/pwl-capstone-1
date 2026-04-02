@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ticket_types', function (Blueprint $table) {
             $table->increments('id_ticket_type'); // Menggunakan increments agar sinkron dengan tabel event
             $table->string('name');
-            $table->integer('capacity')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

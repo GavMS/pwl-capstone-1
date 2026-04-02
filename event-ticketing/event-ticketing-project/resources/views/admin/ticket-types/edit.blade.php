@@ -46,12 +46,12 @@
                             @enderror
                         </div>
 
-                        <!-- Capacity Field -->
+                        <!-- Description Field -->
                         <div class="relative">
-                            <label for="capacity" class="block text-xs font-bold text-[#777777] uppercase tracking-widest mb-4 ml-1">Default Capacity (Optional)</label>
-                            <input type="number" name="capacity" id="capacity" value="{{ old('capacity', $ticketType->capacity) }}" placeholder="e.g. 100, 500, or leave empty for unlimited" 
-                                class="w-full px-8 py-5 bg-[#F4F4F4] border-none rounded-2xl focus:ring-4 focus:ring-[#555555]/10 focus:bg-white transition-all text-[#444444] font-bold text-lg lowercase tracking-tight placeholder:text-[#999999]/50">
-                            @error('capacity')
+                            <label for="description" class="block text-xs font-bold text-[#777777] uppercase tracking-widest mb-4 ml-1">Description</label>
+                            <textarea name="description" id="description" placeholder="describe the benefits of this ticket type..." rows="3"
+                                class="w-full px-8 py-5 bg-[#F4F4F4] border-none rounded-2xl focus:ring-4 focus:ring-[#555555]/10 focus:bg-white transition-all text-[#444444] font-bold text-lg tracking-tight placeholder:text-[#999999]/50" required>{{ old('description', $ticketType->description) }}</textarea>
+                            @error('description')
                                 <p class="mt-2 text-xs font-bold text-red-500 ml-1">{{ $message }}</p>
                             @enderror
                         </div>

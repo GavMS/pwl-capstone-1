@@ -30,8 +30,8 @@ class TicketTypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255|unique:ticket_types,name',
-            'capacity' => 'nullable|integer|min:1',
+            'name'        => 'required|string|max:255|unique:ticket_types,name',
+            'description' => 'required|string',
         ]);
 
         TicketType::create($validated);
@@ -62,8 +62,8 @@ class TicketTypeController extends Controller
     public function update(Request $request, TicketType $ticketType)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255|unique:ticket_types,name,' . $ticketType->id_ticket_type . ',id_ticket_type',
-            'capacity' => 'nullable|integer|min:1',
+            'name'        => 'required|string|max:255|unique:ticket_types,name,' . $ticketType->id_ticket_type . ',id_ticket_type',
+            'description' => 'required|string',
         ]);
 
         $ticketType->update($validated);
