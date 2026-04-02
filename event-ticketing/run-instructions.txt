@@ -8,8 +8,6 @@ Buka dua terminal terpisah:
    npm run dev
 
 2. TERMINAL SERVER (Backend/Laravel):
-   // refresh cache
-   php 
    php artisan serve
 
 Pastikan keduanya tetap berjalan saat Anda sedang coding.
