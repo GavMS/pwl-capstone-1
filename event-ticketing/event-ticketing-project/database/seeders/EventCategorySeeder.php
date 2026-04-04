@@ -28,6 +28,41 @@ class EventCategorySeeder extends Seeder
                 'slug' => 'startup-networking',
                 'description' => 'Networking session for founders, students, and professionals.',
             ],
+            [
+                'name' => 'Music Concert',
+                'slug' => 'music-concert',
+                'description' => 'Live music performances by various artists and bands.',
+            ],
+            [
+                'name' => 'Comedy Show',
+                'slug' => 'comedy-show',
+                'description' => 'Stand-up comedy events and improv shows.',
+            ],
+            [
+                'name' => 'Art Exhibition',
+                'slug' => 'art-exhibition',
+                'description' => 'Showcases of paintings, sculptures, and contemporary art.',
+            ],
+            [
+                'name' => 'Virtual Run',
+                'slug' => 'virtual-run',
+                'description' => 'Online marathon and fitness events you can do anywhere.',
+            ],
+            [
+                'name' => 'Food Festival',
+                'slug' => 'food-festival',
+                'description' => 'Culinary events featuring local and international cuisines.',
+            ],
+            [
+                'name' => 'E-Sports Tournament',
+                'slug' => 'esports-tournament',
+                'description' => 'Competitive gaming events with professional teams.',
+            ],
+            [
+                'name' => 'Theater Performance',
+                'slug' => 'theater-performance',
+                'description' => 'Stage plays, musicals, and dramatic arts.',
+            ],
         ];
 
         foreach ($categories as $category) {

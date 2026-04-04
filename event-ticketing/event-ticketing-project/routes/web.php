@@ -25,6 +25,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Browse Events & Organizer Profile
+    Route::get('/explore', [\App\Http\Controllers\UserController::class, 'explore'])->name('user.explore');
+    Route::get('/explore/creators', [\App\Http\Controllers\UserController::class, 'exploreCreators'])->name('user.explore.creators');
+    Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

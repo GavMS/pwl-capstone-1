@@ -80,4 +80,12 @@ class Accounts extends Authenticatable
     {
         $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
     }
+
+    /**
+     * Relasi ke Events
+     */
+    public function events()
+    {
+        return $this->hasMany(Events::class, 'organizer_id', 'id');
+    }
 }

@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('description');
             $table->string('banner')->nullable();
             $table->string('location');
+            $table->string('city')->default('Jakarta');
+            $table->enum('format', ['onsite', 'online'])->default('onsite');
             $table->dateTime('date');
             $table->enum('status', ['draft', 'published', 'cancelled', 'completed'])->default('draft');
             $table->timestamps();

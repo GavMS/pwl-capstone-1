@@ -32,6 +32,8 @@ class Events extends Model
         'description',
         'banner',
         'location',
+        'city',
+        'format',
         'date',
         'status',
     ];

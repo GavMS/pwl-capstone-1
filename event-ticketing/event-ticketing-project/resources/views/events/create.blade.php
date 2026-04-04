@@ -50,10 +50,30 @@
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label for="location" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Location</label>
+                            <label for="location" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Venue / Location</label>
                             <input type="text" name="location" id="location" required value="{{ old('location') }}" 
-                                class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="where's the fun at?">
+                                class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="venue name or address...">
                             @error('location') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label for="city" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">City</label>
+                            <select name="city" id="city" required class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner">
+                                <option value="">select city...</option>
+                                @foreach(['Jakarta','Bandung','Bali','Surabaya','Yogyakarta','Tangerang','Bekasi','Semarang','Medan','Solo'] as $c)
+                                    <option value="{{ $c }}" {{ old('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                                @endforeach
+                            </select>
+                            @error('city') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label for="format" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Format</label>
+                            <select name="format" id="format" required class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner">
+                                <option value="onsite" {{ old('format','onsite') == 'onsite' ? 'selected' : '' }}>Event Onsite</option>
+                                <option value="online" {{ old('format') == 'online' ? 'selected' : '' }}>Event Online</option>
+                            </select>
+                            @error('format') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
