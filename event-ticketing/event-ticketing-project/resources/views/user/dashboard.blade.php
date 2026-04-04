@@ -22,6 +22,32 @@
 
         <main class="max-w-7xl mx-auto px-6 lg:px-8 mt-12 flex flex-col gap-12 pb-12">
 
+            <!-- ── Live Search Bar ── -->
+            <section class="relative z-40">
+                <div class="relative bg-white rounded-full shadow-md border border-gray-100 flex items-center px-6 py-4 transition-all focus-within:ring-2 focus-within:ring-[#38b2ac]">
+                    <svg class="w-6 h-6 text-gray-400 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input type="text" id="liveSearchInput" autocomplete="off" placeholder="Cari event seru disini..." class="w-full bg-transparent border-none text-lg lg:text-xl font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 lowercase">
+                    <button type="button" id="clearSearchBtn" class="hidden text-gray-400 hover:text-gray-600 ml-4 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <!-- Loading Spinner (dibuat hidden default, muncul sbntr agar terkesan live walau lokal) -->
+                    <svg id="searchSpinner" class="hidden animate-spin ml-4 w-5 h-5 text-[#38b2ac]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+
+                <!-- Hasil Recommendation Dropdown -->
+                <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-3 bg-white border border-gray-100 rounded-3xl shadow-xl overflow-hidden max-h-[400px] overflow-y-auto w-full z-50">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Event Rekomendasi</span>
+                    </div>
+                    <ul id="searchResultsList" class="divide-y divide-gray-100">
+                        <!-- Hasil Javascript di-inject ke sini -->
+                    </ul>
+                </div>
+            </section>
+
             <!-- ── Hero Banner (static first event) ── -->
             <section class="relative">
                 @if($heroEvents->isEmpty())
@@ -223,4 +249,130 @@
         </main>
 
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data semua event dikonversi dari collection ke Javascript Array
+            const allEvents = {!! json_encode($allEventsLite) !!};
+            
+            const searchInput = document.getElementById('liveSearchInput');
+            const searchDropdown = document.getElementById('searchResultsDropdown');
+            const searchList = document.getElementById('searchResultsList');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const spinner = document.getElementById('searchSpinner');
+
+            // Debounce function manual (mencegah search jalan setiap keystroke trmpan buffering)
+            let timeoutId;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(timeoutId); // Selalu bersihkan timeout lama dulu
+                const query = this.value.trim().toLowerCase();
+                
+                // Show/hide clear button & hide dropdown if empty
+                if (query.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                    searchDropdown.classList.add('hidden');
+                    spinner.classList.add('hidden');
+                    return;
+                }
+
+                // Show spinner briefly
+                spinner.classList.remove('hidden');
+                
+                timeoutId = setTimeout(() => {
+                    performSearch(query);
+                    spinner.classList.add('hidden');
+                }, 300); // 300ms delay agar optimal
+            });
+
+            clearBtn.addEventListener('click', function() {
+                clearTimeout(timeoutId); // Batalkan pencarian jika tombol clear diklik
+                searchInput.value = '';
+                searchInput.focus();
+                clearBtn.classList.add('hidden');
+                searchDropdown.classList.add('hidden');
+                spinner.classList.add('hidden');
+            });
+
+            // Sembunyikan dropdown kalau klik di luar area search
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                    searchDropdown.classList.add('hidden');
+                }
+            });
+
+            // Munculkan lagi kalau klik input tapi teksnya ada isinya
+            searchInput.addEventListener('click', function() {
+                if (this.value.trim().length > 0 && searchList.children.length > 0) {
+                    searchDropdown.classList.remove('hidden');
+                }
+            });
+
+            function performSearch(query) {
+                const results = allEvents.filter(ev => {
+                    return ev.title.toLowerCase().includes(query);
+                });
+
+                renderResults(results, query);
+            }
+
+            function renderResults(results, query) {
+                searchList.innerHTML = '';
+                
+                if (results.length === 0) {
+                    searchList.innerHTML = `
+                        <li class="px-6 py-8 text-center">
+                            <span class="text-sm font-medium text-gray-500 lowercase">Ops, event pakai keyword "${query}" gak ketemu.</span>
+                        </li>`;
+                } else {
+                    // Tampilkan maksimal 5 hasil agar tidak telalu penuh
+                    const limit = results.slice(0, 5);
+                    let htmlList = '';
+                    
+                    limit.forEach(ev => {
+                        const imgTag = ev.banner 
+                            ? `<img src="${ev.banner}" class="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0" alt="${ev.title}">`
+                            : `<div class="w-16 h-16 bg-gray-200 rounded-xl flex-shrink-0"></div>`;
+                            
+                        htmlList += `
+                            <li>
+                                <a href="/explore?search=${encodeURIComponent(ev.title)}" class="px-6 py-4 hover:bg-gray-50 flex items-center gap-5 transition group">
+                                    ${imgTag}
+                                    <div class="flex flex-col overflow-hidden">
+                                        <h4 class="font-extrabold text-gray-800 text-sm mb-1 group-hover:text-[#38b2ac] transition truncate">${ev.title}</h4>
+                                        <p class="text-[11px] font-bold text-gray-500 lowercase flex items-center gap-1">
+                                            <span>${ev.date_formatted}</span>
+                                            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                            <span>${ev.city}</span>
+                                            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                            <span>${ev.organizer}</span>
+                                        </p>
+                                    </div>
+                                </a>
+                            </li>
+                        `;
+                    });
+
+                    // Add "Lihat semua hasil pencarian x" jika ada sisa sisa hasil selain 5 tsb
+                    if(results.length > 5) {
+                        htmlList += `
+                            <li>
+                                <a href="/explore?search=${encodeURIComponent(query)}" class="px-6 py-4 bg-gray-50/50 hover:bg-gray-100 flex items-center justify-center transition border-t border-gray-100">
+                                    <span class="text-xs font-bold text-[#38b2ac] uppercase tracking-widest">Lihat ${results.length} hasil lainnya</span>
+                                </a>
+                            </li>
+                        `;
+                    }
+
+                    searchList.innerHTML = htmlList;
+                }
+                
+                searchDropdown.classList.remove('hidden');
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>

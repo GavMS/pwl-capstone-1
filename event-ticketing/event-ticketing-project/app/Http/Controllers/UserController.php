@@ -33,7 +33,24 @@ class UserController extends Controller
             ->take(4)
             ->get();
 
-        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents'));
+        $allEventsLite = Events::where('status', 'published')
+            ->with(['organizer:id,name'])
+            ->select('id_event', 'title', 'date', 'banner', 'organizer_id', 'city')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->map(function($ev) {
+                return [
+                    'id' => $ev->id_event,
+                    'title' => $ev->title,
+                    'date_formatted' => $ev->date->translatedFormat('d M \'y'),
+                    'city' => $ev->city,
+                    'banner' => $ev->banner ? asset('storage/' . $ev->banner) : null,
+                    'organizer' => $ev->organizer ? $ev->organizer->name : 'Platform',
+                    'url' => '#' // ganti url detail jika sudah ada
+                ];
+            });
+
+        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents', 'allEventsLite'));
     }
 
     // Halaman Explore / Browse Events

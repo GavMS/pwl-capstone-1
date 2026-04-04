@@ -31,6 +31,7 @@
             <p class="text-gray-600 font-medium mb-6 text-center sm:text-left">{{ $organizers->total() }} kreator ditemukan</p>
 
             <!-- Creators List (2 columns like GOERS) -->
+            <!-- Creators List  -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-12 gap-y-8">
                 @forelse($organizers as $creator)
                     <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition gap-4">
