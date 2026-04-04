@@ -23,20 +23,30 @@
                 <form id="event-form" action="{{ route($prefix . '.events.store') }}" method="POST" enctype="multipart/form-data" class="space-y-10">
                     @csrf
 
+                    <!-- General Error Alert -->
+                    @if($errors->has('error'))
+                    <p class="text-[10px] text-red-500 font-bold mb-6 ml-1 lowercase">⚠️ {{ $errors->first('error') }}</p>
+                    @endif
+
                     <!-- Title & Description -->
                     <div class="space-y-6">
                         <div class="flex flex-col gap-2">
                             <label for="title" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Event Title</label>
                             <input type="text" name="title" id="title" required value="{{ old('title') }}" 
                                 class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="name of your event...">
-                            @error('title') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                            @error('title') <p class="text-[10px] text-red-500 font-bold ml-1 lowercase">⚠️ {{ $message }}</p> @enderror
                         </div>
 
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-2" x-data="{ desc: '{{ old('description') }}', max: 5000 }">
                             <label for="description" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Description</label>
-                            <textarea name="description" id="description" rows="5" required 
-                                class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="tell them what to expect...">{{ old('description') }}</textarea>
-                            @error('description') <p class="text-[10px] text-red-500 font-bold ml-1">{{ $message }}</p> @enderror
+                            <textarea name="description" id="description" rows="5" required x-model="desc" x-on:input="desc = $event.target.value"
+                                class="w-full px-6 py-4 bg-[#F4F4F4] border-none rounded-2xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-inner" placeholder="tell them what to expect..."></textarea>
+                            <div class="flex justify-between items-center ml-1">
+                                <div>
+                                    @error('description') <p class="text-[10px] text-red-500 font-bold lowercase">⚠️ {{ $message }}</p> @enderror
+                                </div>
+                                <span class="text-[9px] font-bold text-red-500 lowercase opacity-70" x-text="desc.length + ' / ' + max + ' characters'"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -119,8 +129,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-50 pt-10">
                         <div class="flex flex-col gap-2">
                             <label for="banner" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Banner Image</label>
+
+                            <!-- Live preview (hidden until a file is picked) -->
+                            <div id="banner-preview-wrap" class="hidden w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200">
+                                <img id="banner-preview" src="" class="w-full h-full object-cover">
+                            </div>
+
                             <div class="relative group">
-                                <input type="file" name="banner" id="banner" accept="image/*" 
+                                <input type="file" name="banner" id="banner" accept="image/*"
                                     class="w-full text-xs font-bold text-[#777777] file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-extrabold file:uppercase file:bg-[#555555] file:text-white hover:file:bg-black transition">
                             </div>
                             <p class="text-[9px] text-[#999999] font-bold mt-1 uppercase tracking-wider ml-1">max size: 2mb (png, jpg, webp)</p>
@@ -140,11 +156,19 @@
                     <!-- Ticket Configuration -->
                     <div class="border-t border-gray-50 pt-10" x-data="{ 
                         tickets: @js(old('tickets', [['ticket_type_id' => '', 'price' => '', 'stock' => '']])),
+                        ticketTypes: @js($ticketTypes->map(fn($t) => ['id_ticket_type' => $t->id_ticket_type, 'name' => $t->name])->values()),
                         addTicket() {
                             this.tickets.push({ ticket_type_id: '', price: '', stock: '' });
                         },
                         removeTicket(index) {
-                            if(this.tickets.length > 1) this.tickets.splice(index, 1);
+                            if (this.tickets.length > 1) this.tickets.splice(index, 1);
+                        },
+                        availableFor(index) {
+                            const usedIds = this.tickets
+                                .filter((_, i) => i !== index)
+                                .map(t => String(t.ticket_type_id))
+                                .filter(id => id !== '');
+                            return this.ticketTypes.filter(t => !usedIds.includes(String(t.id_ticket_type)));
                         }
                     }">
                         <div class="flex items-center justify-between mb-6 ml-1">
@@ -152,7 +176,10 @@
                                 <h4 class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest">ticket configurations</h4>
                                 <p class="text-[10px] text-[#999999] lowercase mt-1 font-medium">define what kinds of tickets you are selling</p>
                             </div>
-                            <button type="button" @click="addTicket()" class="px-4 py-2 bg-[#F4F4F4] text-[#555555] rounded-xl text-[10px] font-extrabold uppercase tracking-widest hover:bg-[#555555] hover:text-white transition shadow-sm">
+                            <button type="button" @click="addTicket()"
+                                x-bind:disabled="tickets.length >= ticketTypes.length"
+                                x-bind:class="tickets.length >= ticketTypes.length ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[#555555] hover:text-white'"
+                                class="px-4 py-2 bg-[#F4F4F4] text-[#555555] rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition shadow-sm">
                                 + add ticket type
                             </button>
                         </div>
@@ -162,22 +189,24 @@
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-[#F9F9F8] p-6 rounded-[2rem] border border-gray-100 relative group/ticket">
                                     <div class="md:col-span-5 flex flex-col gap-2">
                                         <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">ticket type</label>
-                                        <select :name="'tickets['+index+'][ticket_type_id]'" x-model="ticket.ticket_type_id" required 
-                                            class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
+                                        <select :name="'tickets['+index+'][ticket_type_id]'" x-model="ticket.ticket_type_id"
+                                            class="ticket-type-select w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
                                             <option value="">select type...</option>
-                                            @foreach($ticketTypes as $type)
-                                                <option value="{{ $type->id_ticket_type }}">{{ $type->name }}</option>
-                                            @endforeach
+                                            <template x-for="type in availableFor(index)" :key="type.id_ticket_type">
+                                                <option :value="type.id_ticket_type"
+                                                    :selected="String(ticket.ticket_type_id) === String(type.id_ticket_type)"
+                                                    x-text="type.name"></option>
+                                            </template>
                                         </select>
                                     </div>
                                     <div class="md:col-span-3 flex flex-col gap-2">
                                         <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">price (IDR)</label>
-                                        <input type="number" :name="'tickets['+index+'][price]'" x-model="ticket.price" required placeholder="e.g. 150000"
+                                        <input type="number" :name="'tickets['+index+'][price]'" x-model="ticket.price" min="0" placeholder="e.g. 150000"
                                             class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
                                     </div>
                                     <div class="md:col-span-3 flex flex-col gap-2">
                                         <label class="text-[9px] font-bold text-[#999999] uppercase tracking-widest ml-1">stock (slots)</label>
-                                        <input type="number" :name="'tickets['+index+'][stock]'" x-model="ticket.stock" required placeholder="e.g. 100"
+                                        <input type="number" :name="'tickets['+index+'][stock]'" x-model="ticket.stock" min="1" placeholder="e.g. 100"
                                             class="w-full px-5 py-3.5 bg-white border-none rounded-xl font-bold text-[#444444] focus:ring-2 focus:ring-[#555555] shadow-sm text-sm">
                                     </div>
                                     <div class="md:col-span-1 flex items-end justify-center pb-1">
@@ -189,8 +218,10 @@
                                 </div>
                             </template>
                         </div>
-                        
-                        @error('tickets') <p class="text-[10px] text-red-500 font-bold mt-4 ml-1 lowercase">{{ $message }}</p> @enderror
+
+                        <!-- Ticket type warning -->
+                        <p id="ticket-type-warning" class="hidden text-[10px] text-red-500 font-bold mt-4 ml-1 lowercase">⚠️ please select a ticket type for every row.</p>
+                        @error('tickets') <p class="text-[10px] text-red-500 font-bold mt-4 ml-1 lowercase">⚠️ {{ $message }}</p> @enderror
                     </div>
 
                     <!-- Submit -->
@@ -205,7 +236,31 @@
         
         @push('scripts')
         <script>
+            // Banner live preview
+            document.getElementById('banner').addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('banner-preview').src = e.target.result;
+                    document.getElementById('banner-preview-wrap').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            });
+
             function confirmEventAction(formId, actionText) {
+                // Validate: every ticket row must have a type selected
+                const selects = document.querySelectorAll('.ticket-type-select');
+                const warning = document.getElementById('ticket-type-warning');
+                const allFilled = Array.from(selects).every(s => s.value !== '');
+
+                if (!allFilled) {
+                    warning.classList.remove('hidden');
+                    warning.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                warning.classList.add('hidden');
+
                 Swal.fire({
                     title: 'are you sure?',
                     text: `do you want to ${actionText}?`,
