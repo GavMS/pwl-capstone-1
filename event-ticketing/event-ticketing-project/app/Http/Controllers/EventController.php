@@ -7,7 +7,10 @@ use App\Models\EventCategories;
 use App\Models\Accounts;
 use App\Models\TicketType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Exception;
 
 class EventController extends Controller
 {
@@ -58,7 +61,7 @@ class EventController extends Controller
             'category_id'  => 'nullable|exists:event_categories,id_category',
             'organizer_id' => 'nullable|exists:accounts,id',
             'title'       => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'required|string|max:5000',
             'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'    => 'required|string|max:255',
             'city'        => 'required|string|max:100',
@@ -72,32 +75,60 @@ class EventController extends Controller
         ], [
             'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
             'tickets.required' => 'minimal satu jenis tiket harus ditambahkan.',
+            'description.max' => 'deskripsi terlalu panjang (maksimal 5000 karakter).',
         ]);
 
+        $bannerPath = null;
         if ($request->hasFile('banner')) {
-            $validated['banner'] = $request->file('banner')->store('banners', 'public');
+            $bannerPath = $request->file('banner')->store('banners', 'public');
+            $validated['banner'] = $bannerPath;
         }
 
-        // If the user is an organizer, force the organizer_id to be their own ID
         if (auth()->user()->role === 'organizer') {
             $validated['organizer_id'] = auth()->id();
         }
 
-        $event = Events::create($validated);
+        DB::beginTransaction();
+        try {
+            $event = Events::create($validated);
 
-        // Sync Ticket Types
-        $tickets = [];
-        foreach ($request->tickets as $ticket) {
-            $tickets[$ticket['ticket_type_id']] = [
-                'price' => $ticket['price'],
-                'stock' => $ticket['stock'],
-            ];
+            $tickets = [];
+            foreach ($request->tickets as $ticket) {
+                $tickets[$ticket['ticket_type_id']] = [
+                    'price' => $ticket['price'],
+                    'stock' => $ticket['stock'],
+                ];
+            }
+            $event->ticketTypes()->sync($tickets);
+
+            if (!empty($validated['organizer_id'])) {
+                $organizer = Accounts::find($validated['organizer_id']);
+                if ($organizer) {
+                    Mail::send('emails.organizer_assigned', [
+                        'organizer' => $organizer,
+                        'event'     => $event,
+                    ], function ($message) use ($organizer) {
+                        $message->to($organizer->email, $organizer->name)
+                                ->subject('You Have Been Assigned to an Event – Flowtix');
+                    });
+                }
+            }
+
+            DB::commit();
+            
+            $prefix = $this->routePrefix();
+            return redirect()->route("{$prefix}.events.index")
+                ->with('success', 'Event berhasil dibuat!');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            // Hapus file banner yang terlanjur di-upload jika database error
+            if ($bannerPath) {
+                Storage::disk('public')->delete($bannerPath);
+            }
+            
+            return back()->withInput()->withErrors(['error' => 'gagal menyimpan data. silakan periksa kembali input anda.']);
         }
-        $event->ticketTypes()->sync($tickets);
-
-        $prefix = $this->routePrefix();
-        return redirect()->route("{$prefix}.events.index")
-            ->with('success', 'Event berhasil dibuat!');
     }
 
     /**
@@ -124,7 +155,6 @@ class EventController extends Controller
      */
     public function update(Request $request, Events $event)
     {
-        // Authorization check for organizers
         if (auth()->user()->role === 'organizer' && $event->organizer_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -133,7 +163,7 @@ class EventController extends Controller
             'category_id'  => 'nullable|exists:event_categories,id_category',
             'organizer_id' => 'nullable|exists:accounts,id',
             'title'        => 'required|string|max:255',
-            'description'  => 'required|string',
+            'description'  => 'required|string|max:5000',
             'banner'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'location'     => 'required|string|max:255',
             'city'         => 'required|string|max:100',
@@ -147,36 +177,69 @@ class EventController extends Controller
         ], [
             'date.after_or_equal' => 'tanggal event minimal 30 hari dari sekarang (D-30) untuk persiapan ticketing.',
             'tickets.required' => 'minimal satu jenis tiket harus ditambahkan.',
+            'description.max' => 'deskripsi terlalu panjang (maksimal 5000 karakter).',
         ]);
 
+        $newBannerPath = null;
         if ($request->hasFile('banner')) {
-            // Delete old banner if exists
-            if ($event->banner) {
-                Storage::disk('public')->delete($event->banner);
-            }
-            $validated['banner'] = $request->file('banner')->store('banners', 'public');
+            $newBannerPath = $request->file('banner')->store('banners', 'public');
+            $validated['banner'] = $newBannerPath;
         }
 
-        // Prevent organizers from changing the organizer_id
         if (auth()->user()->role === 'organizer') {
             unset($validated['organizer_id']);
         }
 
-        $event->update($validated);
+        $oldOrganizerId = $event->organizer_id;
+        $oldBannerPath = $event->banner;
 
-        // Sync Ticket Types
-        $tickets = [];
-        foreach ($request->tickets as $ticket) {
-            $tickets[$ticket['ticket_type_id']] = [
-                'price' => $ticket['price'],
-                'stock' => $ticket['stock'],
-            ];
+        DB::beginTransaction();
+        try {
+            $event->update($validated);
+
+            $tickets = [];
+            foreach ($request->tickets as $ticket) {
+                $tickets[$ticket['ticket_type_id']] = [
+                    'price' => $ticket['price'],
+                    'stock' => $ticket['stock'],
+                ];
+            }
+            $event->ticketTypes()->sync($tickets);
+
+            $newOrganizerId = $event->fresh()->organizer_id;
+            if ($newOrganizerId && $newOrganizerId !== $oldOrganizerId) {
+                $organizer = Accounts::find($newOrganizerId);
+                if ($organizer) {
+                    Mail::send('emails.organizer_assigned', [
+                        'organizer' => $organizer,
+                        'event'     => $event->fresh(),
+                    ], function ($message) use ($organizer) {
+                        $message->to($organizer->email, $organizer->name)
+                                ->subject('You Have Been Assigned to an Event – Flowtix');
+                    });
+                }
+            }
+
+            DB::commit();
+
+            // Jika update sukses dan ada banner baru, hapus banner yang lama
+            if ($newBannerPath && $oldBannerPath) {
+                Storage::disk('public')->delete($oldBannerPath);
+            }
+
+            $prefix = $this->routePrefix();
+            return redirect()->route("{$prefix}.events.index")
+                ->with('success', 'Event berhasil diperbarui!');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            // Jika gagal, hapus file banner baru yang terlanjur di-upload
+            if ($newBannerPath) {
+                Storage::disk('public')->delete($newBannerPath);
+            }
+
+            return back()->withInput()->withErrors(['error' => 'gagal memperbarui data. silakan periksa kembali input anda.']);
         }
-        $event->ticketTypes()->sync($tickets);
-
-        $prefix = $this->routePrefix();
-        return redirect()->route("{$prefix}.events.index")
-            ->with('success', 'Event berhasil diperbarui!');
     }
 
     /**
