@@ -46,7 +46,7 @@ class UserController extends Controller
                     'city' => $ev->city,
                     'banner' => $ev->banner ? asset('storage/' . $ev->banner) : null,
                     'organizer' => $ev->organizer ? $ev->organizer->name : 'Platform',
-                    'url' => '#' // ganti url detail jika sudah ada
+                    'url' => route('events.show', $ev->id_event)
                 ];
             });
 
@@ -138,7 +138,7 @@ class UserController extends Controller
 
         // Filter by Format — exact match on dedicated format column
         if ($request->filled('format')) {
-            $query->where('format', $request->format);
+            $query->where('format', $request->input('format'));
         }
 
         // Order by latest and paginate

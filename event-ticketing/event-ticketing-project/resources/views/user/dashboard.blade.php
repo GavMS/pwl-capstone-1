@@ -56,11 +56,11 @@
                 </div>
                 @else
                 @php $heroEvent = $heroEvents->first(); @endphp
-                <div class="w-full h-[400px] rounded-[2rem] overflow-hidden relative shadow-sm">
+                <a href="{{ route('events.show', $heroEvent->id_event) }}" class="block w-full h-[400px] rounded-[2rem] overflow-hidden relative shadow-sm group">
                     @if($heroEvent->banner)
-                        <img src="{{ asset('storage/' . $heroEvent->banner) }}" alt="{{ $heroEvent->title }}" class="w-full h-full object-cover">
+                        <img src="{{ asset('storage/' . $heroEvent->banner) }}" alt="{{ $heroEvent->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                     @else
-                        <div class="w-full h-full bg-gradient-to-br from-gray-600 to-gray-900"></div>
+                        <div class="w-full h-full bg-gradient-to-br from-gray-600 to-gray-900 group-hover:scale-105 transition duration-700"></div>
                     @endif
                     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
                     <div class="absolute bottom-10 left-10 right-10 text-white md:w-2/3">
@@ -73,7 +73,7 @@
                             {{ $heroEvent->date->translatedFormat('l, d F Y') }}&nbsp;&bull;&nbsp;{{ $heroEvent->location }}
                         </p>
                     </div>
-                </div>
+                </a>
                 @endif
             </section>
 
@@ -136,13 +136,13 @@
                 @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach($featuredEvents as $event)
-                    <div class="bg-white rounded-[2rem] p-3 shadow-sm hover:shadow-md transition flex flex-col group cursor-pointer">
+                    <a href="{{ route('events.show', $event->id_event) }}" class="bg-white rounded-[2rem] p-3 shadow-sm hover:shadow-md transition flex flex-col group cursor-pointer block">
                         <!-- Cover Image -->
                         <div class="w-full h-40 bg-gray-200 rounded-[1.5rem] overflow-hidden relative mb-4 flex-shrink-0">
                             @if($event->banner)
                             <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                             @else
-                            <div class="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                            <div class="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center group-hover:scale-105 transition duration-500">
                                 <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                             @endif
@@ -160,7 +160,7 @@
                         </div>
                         <!-- Info -->
                         <div class="px-2 pb-2 flex-grow flex flex-col">
-                            <h4 class="text-[15px] font-bold text-[#444444] leading-snug mb-1 line-clamp-2">{{ $event->title }}</h4>
+                            <h4 class="text-[15px] font-bold text-[#444444] group-hover:text-[#38b2ac] transition leading-snug mb-1 line-clamp-2">{{ $event->title }}</h4>
                             <p class="text-[11px] font-bold text-[#777777] mb-4">{{ $event->date->translatedFormat('d M Y') }}</p>
                             <hr class="border-gray-100 mb-3">
                             <div class="flex items-center gap-2 mt-auto">
@@ -170,7 +170,7 @@
                                 <span class="text-[10px] font-semibold text-[#555555] truncate uppercase">{{ $event->organizer?->name ?? 'Unknown Organizer' }}</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                     @endforeach
                 </div>
                 @endif
@@ -339,7 +339,7 @@
                             
                         htmlList += `
                             <li>
-                                <a href="/explore?search=${encodeURIComponent(ev.title)}" class="px-6 py-4 hover:bg-gray-50 flex items-center gap-5 transition group">
+                                <a href="${ev.url}" class="px-6 py-4 hover:bg-gray-50 flex items-center gap-5 transition group">
                                     ${imgTag}
                                     <div class="flex flex-col overflow-hidden">
                                         <h4 class="font-extrabold text-gray-800 text-sm mb-1 group-hover:text-[#38b2ac] transition truncate">${ev.title}</h4>
