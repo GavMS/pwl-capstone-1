@@ -98,7 +98,7 @@
         {{-- Events Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @forelse($events as $event)
-                <a href="#" class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 border border-gray-100 flex flex-col h-full">
+                <a href="{{ route('events.show', $event->id_event) }}" class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 border border-gray-100 flex flex-col h-full">
                     <div class="relative h-48 overflow-hidden bg-gray-200 flex-shrink-0">
                         @if($event->banner)
                             <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">

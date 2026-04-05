@@ -28,7 +28,7 @@ class EventController extends Controller
     public function index()
     {
         $query = Events::latest();
-        
+
         // Filter by organizer if the user is an organizer
         if (auth()->user()->role === 'organizer') {
             $query->where('organizer_id', auth()->id());
@@ -40,15 +40,33 @@ class EventController extends Controller
     }
 
     /**
+     * Show the detailed view of a specific event for public/users.
+     */
+    public function show($id)
+    {
+        $event = Events::with(['category', 'organizer', 'ticketTypes'])->findOrFail($id);
+
+        // Hide draft/cancelled events from normal users
+        if ($event->status !== 'published') {
+            $user = auth()->user();
+            if (!$user || ($user->role === 'user') || ($user->role === 'organizer' && $event->organizer_id !== $user->id)) {
+                abort(404, 'Event tidak ditemukan atau belum rilis.');
+            }
+        }
+
+        return view('events.show', compact('event'));
+    }
+
+    /**
      * Show the form for creating a new event.
      */
     public function create()
     {
-        $prefix     = $this->routePrefix();
+        $prefix = $this->routePrefix();
         $categories = EventCategories::all();
         $organizers = Accounts::where('role', 'organizer')->get();
         $ticketTypes = TicketType::all();
-        
+
         return view('events.create', compact('prefix', 'categories', 'organizers', 'ticketTypes'));
     }
 
@@ -58,17 +76,17 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'category_id' => 'nullable|exists:event_categories,id_category',
             'organizer_id' => 'nullable|exists:accounts,id',
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'required|string|max:5000',
-            'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'location'    => 'required|string|max:255',
-            'city'        => 'required|string|max:100',
-            'format'      => 'required|in:onsite,online',
-            'date'        => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
-            'status'      => 'required|in:draft,published,cancelled,completed',
-            'tickets'     => 'required|array|min:1',
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'location' => 'required|string|max:255',
+            'city' => 'required|string|max:100',
+            'format' => 'required|in:onsite,online',
+            'date' => 'required|date|after_or_equal:' . now()->toDateString(),
+            'status' => 'required|in:draft,published,cancelled,completed',
+            'tickets' => 'required|array|min:1',
             'tickets.*.ticket_type_id' => 'required|exists:ticket_types,id_ticket_type',
             'tickets.*.price' => 'required|integer|min:0',
             'tickets.*.stock' => 'required|integer|min:1',
@@ -106,16 +124,16 @@ class EventController extends Controller
                 if ($organizer) {
                     Mail::send('emails.organizer_assigned', [
                         'organizer' => $organizer,
-                        'event'     => $event,
+                        'event' => $event,
                     ], function ($message) use ($organizer) {
                         $message->to($organizer->email, $organizer->name)
-                                ->subject('You Have Been Assigned to an Event – Flowtix');
+                            ->subject('You Have Been Assigned to an Event – Flowtix');
                     });
                 }
             }
 
             DB::commit();
-            
+
             $prefix = $this->routePrefix();
             return redirect()->route("{$prefix}.events.index")
                 ->with('success', 'Event berhasil dibuat!');
@@ -126,7 +144,7 @@ class EventController extends Controller
             if ($bannerPath) {
                 Storage::disk('public')->delete($bannerPath);
             }
-            
+
             return back()->withInput()->withErrors(['error' => 'gagal menyimpan data. silakan periksa kembali input anda.']);
         }
     }
@@ -141,12 +159,12 @@ class EventController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $prefix     = $this->routePrefix();
+        $prefix = $this->routePrefix();
         $categories = EventCategories::all();
         $organizers = Accounts::where('role', 'organizer')->get();
         $ticketTypes = TicketType::all();
         $event->load('ticketTypes');
-        
+
         return view('events.edit', compact('event', 'prefix', 'categories', 'organizers', 'ticketTypes'));
     }
 
@@ -160,17 +178,17 @@ class EventController extends Controller
         }
 
         $validated = $request->validate([
-            'category_id'  => 'nullable|exists:event_categories,id_category',
+            'category_id' => 'nullable|exists:event_categories,id_category',
             'organizer_id' => 'nullable|exists:accounts,id',
-            'title'        => 'required|string|max:255',
-            'description'  => 'required|string|max:5000',
-            'banner'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'location'     => 'required|string|max:255',
-            'city'         => 'required|string|max:100',
-            'format'       => 'required|in:onsite,online',
-            'date'         => 'required|date|after_or_equal:' . now()->addDays(30)->toDateString(),
-            'status'       => 'required|in:draft,published,cancelled,completed',
-            'tickets'      => 'required|array|min:1',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:5000',
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'location' => 'required|string|max:255',
+            'city' => 'required|string|max:100',
+            'format' => 'required|in:onsite,online',
+            'date' => 'required|date|after_or_equal:' . now()->toDateString(),
+            'status' => 'required|in:draft,published,cancelled,completed',
+            'tickets' => 'required|array|min:1',
             'tickets.*.ticket_type_id' => 'required|exists:ticket_types,id_ticket_type',
             'tickets.*.price' => 'required|integer|min:0',
             'tickets.*.stock' => 'required|integer|min:1',
@@ -184,6 +202,9 @@ class EventController extends Controller
         if ($request->hasFile('banner')) {
             $newBannerPath = $request->file('banner')->store('banners', 'public');
             $validated['banner'] = $newBannerPath;
+        } elseif ($request->input('delete_banner') == '1') {
+            // User explicitly deleted the existing banner
+            $validated['banner'] = null;
         }
 
         if (auth()->user()->role === 'organizer') {
@@ -212,18 +233,18 @@ class EventController extends Controller
                 if ($organizer) {
                     Mail::send('emails.organizer_assigned', [
                         'organizer' => $organizer,
-                        'event'     => $event->fresh(),
+                        'event' => $event->fresh(),
                     ], function ($message) use ($organizer) {
                         $message->to($organizer->email, $organizer->name)
-                                ->subject('You Have Been Assigned to an Event – Flowtix');
+                            ->subject('You Have Been Assigned to an Event – Flowtix');
                     });
                 }
             }
 
             DB::commit();
 
-            // Jika update sukses dan ada banner baru, hapus banner yang lama
-            if ($newBannerPath && $oldBannerPath) {
+            // Jika update sukses dan ada banner baru / banner dihapus, hapus file lama
+            if ($oldBannerPath && ($newBannerPath || $request->input('delete_banner') == '1')) {
                 Storage::disk('public')->delete($oldBannerPath);
             }
 
