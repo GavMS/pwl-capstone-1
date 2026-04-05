@@ -184,6 +184,9 @@ class EventController extends Controller
         if ($request->hasFile('banner')) {
             $newBannerPath = $request->file('banner')->store('banners', 'public');
             $validated['banner'] = $newBannerPath;
+        } elseif ($request->input('delete_banner') == '1') {
+            // User explicitly deleted the existing banner
+            $validated['banner'] = null;
         }
 
         if (auth()->user()->role === 'organizer') {
@@ -222,8 +225,8 @@ class EventController extends Controller
 
             DB::commit();
 
-            // Jika update sukses dan ada banner baru, hapus banner yang lama
-            if ($newBannerPath && $oldBannerPath) {
+            // Jika update sukses dan ada banner baru / banner dihapus, hapus file lama
+            if ($oldBannerPath && ($newBannerPath || $request->input('delete_banner') == '1')) {
                 Storage::disk('public')->delete($oldBannerPath);
             }
 

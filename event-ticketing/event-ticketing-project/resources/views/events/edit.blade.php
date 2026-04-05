@@ -11,7 +11,7 @@
                         updating info for "{{ $event->title }}".
                     </p>
                 </div>
-                <a href="{{ route($prefix . '.events.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-[#777777] hover:text-black transition transition-all">
+                <a href="{{ route($prefix . '.events.index') }}" onclick="return handleCancelNav(event, this)" class="inline-flex items-center gap-2 text-sm font-bold text-[#777777] hover:text-black transition transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     back to list
                 </a>
@@ -130,15 +130,34 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-50 pt-10">
                         <div class="flex flex-col gap-2">
                             <label for="banner" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Banner Image</label>
-                            
+
+                            {{-- Existing saved banner --}}
                             @if($event->banner)
-                                <div class="w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200">
-                                    <img src="{{ asset('storage/' . $event->banner) }}" class="w-full h-full object-cover">
+                                <div id="current-banner-wrap" class="w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200 relative">
+                                    <img id="current-banner-img" src="{{ asset('storage/' . $event->banner) }}" class="w-full h-full object-cover">
+                                    <button type="button" onclick="confirmDeleteBanner()" title="remove current banner"
+                                        class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-red-600 transition text-xs font-bold">
+                                        ✕
+                                    </button>
                                 </div>
+                            @else
+                                <div id="current-banner-wrap" class="hidden"></div>
                             @endif
 
+                            {{-- Live preview for newly selected file --}}
+                            <div id="banner-preview-wrap" class="hidden w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200 relative">
+                                <img id="banner-preview" src="" class="w-full h-full object-cover">
+                                <button type="button" onclick="clearBannerPreview()" title="remove selected image"
+                                    class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-black transition text-xs font-bold">
+                                    ✕
+                                </button>
+                            </div>
+
+                            {{-- Hidden flag: tell the controller to delete the banner --}}
+                            <input type="hidden" name="delete_banner" id="delete_banner" value="0">
+
                             <div class="relative group">
-                                <input type="file" name="banner" id="banner" accept="image/*" 
+                                <input type="file" name="banner" id="banner" accept="image/*"
                                     class="w-full text-xs font-bold text-[#777777] file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-extrabold file:uppercase file:bg-[#555555] file:text-white hover:file:bg-black transition">
                             </div>
                             <p class="text-[9px] text-[#999999] font-bold mt-1 uppercase tracking-wider ml-1">leave empty to keep current</p>
@@ -228,6 +247,9 @@
 
                     <!-- Submit -->
                     <div class="pt-8 border-t border-gray-50 flex justify-end gap-3">
+                        <a href="{{ route($prefix . '.events.index') }}" class="w-full md:w-auto px-10 py-5 bg-[#F4F4F4] text-[#777777] rounded-3xl font-extrabold lowercase hover:bg-gray-200 transition shadow-sm text-center">
+                            cancel.
+                        </a>
                         <button type="button" onclick="confirmEventAction('edit-event-form', 'update this event')" class="w-full md:w-auto px-10 py-5 bg-[#555555] text-white rounded-3xl font-extrabold lowercase hover:bg-black transition shadow-lg shadow-gray-200">
                             update event.
                         </button>
@@ -238,6 +260,96 @@
 
         @push('scripts')
         <script>
+            // Banner live preview (newly selected file)
+            document.getElementById('banner').addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) {
+                    document.getElementById('banner-preview-wrap').classList.add('hidden');
+                    return;
+                }
+                // If user picks a new file, undo any pending delete
+                document.getElementById('delete_banner').value = '0';
+                const currentWrap = document.getElementById('current-banner-wrap');
+                if (currentWrap) currentWrap.style.opacity = '0.4';
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('banner-preview').src = e.target.result;
+                    document.getElementById('banner-preview-wrap').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            });
+
+            function clearBannerPreview() {
+                const input = document.getElementById('banner');
+                input.value = '';
+                document.getElementById('banner-preview').src = '';
+                document.getElementById('banner-preview-wrap').classList.add('hidden');
+                // Restore current banner opacity
+                const currentWrap = document.getElementById('current-banner-wrap');
+                if (currentWrap) currentWrap.style.opacity = '1';
+            }
+
+            function confirmDeleteBanner() {
+                Swal.fire({
+                    title: 'delete banner?',
+                    text: 'the current banner image will be removed when you save.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#F4F4F4',
+                    confirmButtonText: 'yes, delete it',
+                    cancelButtonText: 'keep it',
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        confirmButton: 'rounded-xl font-bold px-6 py-3',
+                        cancelButton: 'rounded-xl font-bold px-6 py-3 text-[#777777]'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('delete_banner').value = '1';
+                        const wrap = document.getElementById('current-banner-wrap');
+                        if (wrap) {
+                            wrap.style.transition = 'opacity 0.3s';
+                            wrap.style.opacity = '0.2';
+                        }
+                        // show a small notice
+                        Swal.fire({
+                            toast: true,
+                            position: 'bottom-end',
+                            icon: 'info',
+                            title: 'banner will be deleted on save.',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                    }
+                });
+            }
+
+            function handleCancelNav(e, el) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'leave without saving?',
+                    text: 'your changes will not be saved.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#555555',
+                    cancelButtonColor: '#F4F4F4',
+                    confirmButtonText: 'yes, leave',
+                    cancelButtonText: 'stay',
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        confirmButton: 'rounded-xl font-bold px-6 py-3',
+                        cancelButton: 'rounded-xl font-bold px-6 py-3 text-[#777777]'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = el.href;
+                    }
+                });
+            }
+
             function confirmEventAction(formId, actionText) {
                 // Validate: every ticket row must have a type selected
                 const selects = document.querySelectorAll('.ticket-type-select');

@@ -11,7 +11,7 @@
                         fill in details to publish a new experience.
                     </p>
                 </div>
-                <a href="{{ route($prefix . '.events.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-[#777777] hover:text-black transition transition-all">
+                <a href="{{ route($prefix . '.events.index') }}" onclick="return handleCancelNav(event, this)" class="inline-flex items-center gap-2 text-sm font-bold text-[#777777] hover:text-black transition transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     back to list
                 </a>
@@ -131,8 +131,12 @@
                             <label for="banner" class="text-[10px] font-extrabold text-[#777777] uppercase tracking-widest ml-1">Banner Image</label>
 
                             <!-- Live preview (hidden until a file is picked) -->
-                            <div id="banner-preview-wrap" class="hidden w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200">
+                            <div id="banner-preview-wrap" class="hidden w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200 relative">
                                 <img id="banner-preview" src="" class="w-full h-full object-cover">
+                                <button type="button" onclick="clearBannerPreview()" title="remove selected image"
+                                    class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-black transition text-xs font-bold">
+                                    ✕
+                                </button>
                             </div>
 
                             <div class="relative group">
@@ -226,6 +230,9 @@
 
                     <!-- Submit -->
                     <div class="pt-8 border-t border-gray-50 flex justify-end gap-3">
+                        <a href="{{ route($prefix . '.events.index') }}" class="w-full md:w-auto px-10 py-5 bg-[#F4F4F4] text-[#777777] rounded-3xl font-extrabold lowercase hover:bg-gray-200 transition shadow-sm text-center">
+                            cancel.
+                        </a>
                         <button type="button" onclick="confirmEventAction('event-form', 'create this event')" class="w-full md:w-auto px-10 py-5 bg-[#555555] text-white rounded-3xl font-extrabold lowercase hover:bg-black transition shadow-lg shadow-gray-200">
                             save event.
                         </button>
@@ -239,7 +246,10 @@
             // Banner live preview
             document.getElementById('banner').addEventListener('change', function () {
                 const file = this.files[0];
-                if (!file) return;
+                if (!file) {
+                    document.getElementById('banner-preview-wrap').classList.add('hidden');
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('banner-preview').src = e.target.result;
@@ -247,6 +257,36 @@
                 };
                 reader.readAsDataURL(file);
             });
+
+            function clearBannerPreview() {
+                const input = document.getElementById('banner');
+                input.value = '';
+                document.getElementById('banner-preview').src = '';
+                document.getElementById('banner-preview-wrap').classList.add('hidden');
+            }
+
+            function handleCancelNav(e, el) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'leave without saving?',
+                    text: 'your changes will not be saved.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#555555',
+                    cancelButtonColor: '#F4F4F4',
+                    confirmButtonText: 'yes, leave',
+                    cancelButtonText: 'stay',
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        confirmButton: 'rounded-xl font-bold px-6 py-3',
+                        cancelButton: 'rounded-xl font-bold px-6 py-3 text-[#777777]'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = el.href;
+                    }
+                });
+            }
 
             function confirmEventAction(formId, actionText) {
                 // Validate: every ticket row must have a type selected
