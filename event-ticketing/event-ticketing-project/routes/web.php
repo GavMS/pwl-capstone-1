@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/financials', [\App\Http\Controllers\AdminController::class, 'financials'])->name('admin.financials');
 
 
     // Event CRUD — Admin
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'role:organizer'])->group(function () {
 
     // Event View Only — Organizer
     Route::get('/organizer/events', [EventController::class, 'index'])->name('organizer.events.index');
+    
+    // Sales & Payouts — Organizer
+    Route::get('/organizer/sales', [\App\Http\Controllers\OrganizerController::class, 'sales'])->name('organizer.sales');
 });
 
 Route::middleware(['auth', 'role:user'])->group(function () {
