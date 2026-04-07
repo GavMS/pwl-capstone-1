@@ -17,7 +17,7 @@
             @endforeach
             <div class="border-b border-gray-300 pb-2 flex gap-4 items-center">
                 <svg class="w-6 h-6 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="search-input" type="text" name="search" value="{{ request('search') }}" placeholder="Cari keseruan..." autocomplete="off"
+                <input id="search-input" type="text" name="search" value="{{ request('search') }}" placeholder="Search events..." autocomplete="off"
                     class="w-full bg-transparent border-none focus:ring-0 text-xl md:text-2xl font-bold placeholder-gray-400 p-0 outline-none">
             </div>
         </form>
@@ -31,7 +31,7 @@
                 </a>
                 <a href="{{ route('user.explore.creators') }}" class="px-8 py-2.5 rounded-full text-sm font-bold text-gray-500 hover:text-gray-900 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Kreator
+                    Creators
                 </a>
             </div>
         </div>
@@ -49,7 +49,7 @@
             {{-- Active filter badges --}}
             @if(request('category'))
                 <span class="px-3 py-1.5 bg-[#f0fdfa] text-[#38b2ac] border border-[#38b2ac] rounded-full text-xs font-bold">
-                    {{ $categories->firstWhere('id_category', request('category'))?->name ?? 'Kategori' }}
+                    {{ $categories->firstWhere('id_category', request('category'))?->name ?? 'Category' }}
                     <a href="{{ route('user.explore', array_merge(request()->except(['category','_token']), [])) }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
                 </span>
             @endif
@@ -61,7 +61,7 @@
             @endif
             @if(request('tanggal'))
                 <span class="px-3 py-1.5 bg-[#f0fdfa] text-[#38b2ac] border border-[#38b2ac] rounded-full text-xs font-bold">
-                    {{ request('tanggal') == 'custom' ? (request('custom_date') ?? 'Pilih Tanggal') : ucfirst(str_replace('_',' ',request('tanggal'))) }}
+                    {{ request('tanggal') == 'custom' ? (request('custom_date') ?? 'Pick Date') : ucfirst(str_replace('_',' ',request('tanggal'))) }}
                     <a href="{{ route('user.explore', array_merge(request()->except(['tanggal','custom_date','_token']), [])) }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
                 </span>
             @endif
@@ -73,7 +73,7 @@
             @endif
             @if(request('harga'))
                 <span class="px-3 py-1.5 bg-[#f0fdfa] text-[#38b2ac] border border-[#38b2ac] rounded-full text-xs font-bold">
-                    {{ ['gratis'=>'Gratis','under100'=>'<Rp100rb','100to250'=>'Rp100-250rb','251to500'=>'Rp251-500rb','over500'=>'>Rp500rb'][request('harga')] ?? request('harga') }}
+                    {{ ['gratis'=>'Free','under100'=>'<Rp100k','100to250'=>'Rp100-250k','251to500'=>'Rp251-500k','over500'=>'>Rp500k'][request('harga')] ?? request('harga') }}
                     <a href="{{ route('user.explore', array_merge(request()->except(['harga','_token']), [])) }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
                 </span>
             @endif
@@ -93,7 +93,7 @@
         </div>
 
         {{-- Event Count --}}
-        <p class="text-gray-600 font-medium mb-6">{{ $events->total() }} event menantimu!</p>
+        <p class="text-gray-600 font-medium mb-6">{{ $events->total() }} {{ $events->total() === 1 ? 'event' : 'events' }} available</p>
 
         {{-- Events Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -137,10 +137,10 @@
                             </div>
                         </div>
                         <div class="pt-4 border-t border-dashed border-gray-200 flex justify-between items-end">
-                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Mulai dari</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</span>
                             <span class="text-base font-extrabold text-[#e02424]">
                                 @php $minPrice = $event->ticketTypes->min('pivot.price'); @endphp
-                                @if($minPrice === null) TBA @elseif($minPrice == 0) Gratis @else Rp{{ number_format($minPrice, 0, ',', '.') }} @endif
+                                @if($minPrice === null) TBA @elseif($minPrice == 0) Free @else Rp{{ number_format($minPrice, 0, ',', '.') }} @endif
                             </span>
                         </div>
                     </div>
@@ -148,8 +148,8 @@
             @empty
                 <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
                     <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Tidak ada event ditemukan.</h3>
-                    <p class="text-gray-500 font-medium">Coba gunakan filter atau kata kunci lain.</p>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No events found.</h3>
+                    <p class="text-gray-500 font-medium">Try using different filters or keywords.</p>
                 </div>
             @endforelse
         </div>
@@ -161,7 +161,7 @@
 {{-- ── FILTER MODAL (CSS :target trick) ── --}}
 <div id="filter-modal">
     {{-- Backdrop --}}
-    <a href="#" class="absolute inset-0 bg-gray-900/50" aria-label="Tutup filter"></a>
+    <a href="#" class="absolute inset-0 bg-gray-900/50" aria-label="Close filter"></a>
 
     {{-- Modal Panel --}}
     <div class="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col" style="max-height:88vh;">
@@ -181,11 +181,11 @@
             {{-- Left Tab Nav --}}
             <div class="flex-shrink-0 w-32 bg-gray-50 border-r border-gray-100 flex flex-col" id="tab-nav">
                 @foreach([
-                    ['id'=>'tab-kat','label'=>'Kategori'],
-                    ['id'=>'tab-lok','label'=>'Lokasi'],
-                    ['id'=>'tab-tgl','label'=>'Tanggal'],
-                    ['id'=>'tab-wkt','label'=>'Waktu'],
-                    ['id'=>'tab-hrg','label'=>'Harga'],
+                    ['id'=>'tab-kat','label'=>'Category'],
+                    ['id'=>'tab-lok','label'=>'Location'],
+                    ['id'=>'tab-tgl','label'=>'Date'],
+                    ['id'=>'tab-wkt','label'=>'Time'],
+                    ['id'=>'tab-hrg','label'=>'Price'],
                     ['id'=>'tab-fmt','label'=>'Format'],
                 ] as $tab)
                 <button type="button" onclick="switchTab('{{ $tab['id'] }}')"
@@ -199,13 +199,13 @@
             {{-- Right Content --}}
             <div class="flex-1 overflow-y-auto p-6">
 
-                {{-- Kategori --}}
+                {{-- Category --}}
                 <div id="tab-kat" class="tab-panel">
-                    <h4 class="text-lg font-bold text-gray-900 mb-4">Kategori</h4>
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">Category</h4>
                     <div class="space-y-1">
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="category" value="" {{ !request('category') ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
-                            <span class="ml-3 font-medium text-gray-700">Semua Kategori</span>
+                            <span class="ml-3 font-medium text-gray-700">All Categories</span>
                         </label>
                         @foreach($categories as $cat)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
@@ -216,13 +216,13 @@
                     </div>
                 </div>
 
-                {{-- Lokasi --}}
+                {{-- Location --}}
                 <div id="tab-lok" class="tab-panel">
-                    <h4 class="text-lg font-bold text-gray-900 mb-4">Lokasi</h4>
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">Location</h4>
                     <div class="space-y-1">
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="location" value="" {{ !request('location') ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
-                            <span class="ml-3 font-medium text-gray-700">Semua Lokasi</span>
+                            <span class="ml-3 font-medium text-gray-700">All Locations</span>
                         </label>
                         @foreach($popularLocations as $loc)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
@@ -233,19 +233,19 @@
                     </div>
                 </div>
 
-                {{-- Tanggal --}}
+                {{-- Date --}}
                 <div id="tab-tgl" class="tab-panel">
-                    <h4 class="text-lg font-bold text-gray-900 mb-4">Tanggal</h4>
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">Date</h4>
                     <div class="space-y-1">
                         @foreach([
-                            ['val'=>'','label'=>'Semua Tanggal'],
-                            ['val'=>'today','label'=>'Hari Ini'],
-                            ['val'=>'tomorrow','label'=>'Besok'],
-                            ['val'=>'this_week','label'=>'Pekan Ini'],
-                            ['val'=>'this_weekend','label'=>'Akhir Pekan Ini'],
-                            ['val'=>'next_week','label'=>'Pekan Depan'],
-                            ['val'=>'next_weekend','label'=>'Akhir Pekan Depan'],
-                            ['val'=>'this_month','label'=>'Bulan Ini'],
+                            ['val'=>'','label'=>'All Dates'],
+                            ['val'=>'today','label'=>'Today'],
+                            ['val'=>'tomorrow','label'=>'Tomorrow'],
+                            ['val'=>'this_week','label'=>'This Week'],
+                            ['val'=>'this_weekend','label'=>'This Weekend'],
+                            ['val'=>'next_week','label'=>'Next Week'],
+                            ['val'=>'next_weekend','label'=>'Next Weekend'],
+                            ['val'=>'this_month','label'=>'This Month'],
                         ] as $opt)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="tanggal" value="{{ $opt['val'] }}" {{ request('tanggal')==$opt['val'] ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
@@ -254,7 +254,7 @@
                         @endforeach
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="tanggal" value="custom" id="ftgl-custom" {{ request('tanggal')=='custom' ? 'checked' : '' }} class="w-5 h-5 accent-teal-500" onchange="document.getElementById('custom-date-wrap').style.display='block'">
-                            <span class="ml-3 font-medium text-gray-700">Pilih Tanggal</span>
+                            <span class="ml-3 font-medium text-gray-700">Pick a Date</span>
                         </label>
                         <div id="custom-date-wrap" class="px-3 pt-2" style="{{ request('tanggal')=='custom' ? '' : 'display:none' }}">
                             <input type="date" name="custom_date" value="{{ request('custom_date') }}" min="{{ today()->format('Y-m-d') }}"
@@ -263,15 +263,15 @@
                     </div>
                 </div>
 
-                {{-- Waktu --}}
+                {{-- Time --}}
                 <div id="tab-wkt" class="tab-panel">
-                    <h4 class="text-lg font-bold text-gray-900 mb-4">Waktu</h4>
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">Time</h4>
                     <div class="space-y-1">
                         @foreach([
-                            ['val'=>'','label'=>'Semua Waktu','sub'=>''],
-                            ['val'=>'pagi','label'=>'Pagi','sub'=>'05.00 – 10.00'],
-                            ['val'=>'siang','label'=>'Siang','sub'=>'10.00 – 16.00'],
-                            ['val'=>'malam','label'=>'Malam','sub'=>'16.00 – 05.00'],
+                            ['val'=>'','label'=>'All Times','sub'=>''],
+                            ['val'=>'pagi','label'=>'Morning','sub'=>'05:00 – 10:00'],
+                            ['val'=>'siang','label'=>'Afternoon','sub'=>'10:00 – 16:00'],
+                            ['val'=>'malam','label'=>'Evening','sub'=>'16:00 – 05:00'],
                         ] as $opt)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="waktu" value="{{ $opt['val'] }}" {{ request('waktu')==$opt['val'] ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
@@ -284,17 +284,17 @@
                     </div>
                 </div>
 
-                {{-- Harga --}}
+                {{-- Price --}}
                 <div id="tab-hrg" class="tab-panel">
-                    <h4 class="text-lg font-bold text-gray-900 mb-4">Harga</h4>
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">Price</h4>
                     <div class="space-y-1">
                         @foreach([
-                            ['val'=>'','label'=>'Semua Harga'],
-                            ['val'=>'gratis','label'=>'Gratis'],
-                            ['val'=>'under100','label'=>'Di bawah Rp100.000'],
-                            ['val'=>'100to250','label'=>'Rp100.000 – Rp250.000'],
-                            ['val'=>'251to500','label'=>'Rp251.000 – Rp500.000'],
-                            ['val'=>'over500','label'=>'Di atas Rp500.000'],
+                            ['val'=>'','label'=>'All Prices'],
+                            ['val'=>'gratis','label'=>'Free'],
+                            ['val'=>'under100','label'=>'Under Rp100,000'],
+                            ['val'=>'100to250','label'=>'Rp100,000 – Rp250,000'],
+                            ['val'=>'251to500','label'=>'Rp251,000 – Rp500,000'],
+                            ['val'=>'over500','label'=>'Over Rp500,000'],
                         ] as $opt)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="harga" value="{{ $opt['val'] }}" {{ request('harga')==$opt['val'] ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
@@ -309,9 +309,9 @@
                     <h4 class="text-lg font-bold text-gray-900 mb-4">Format</h4>
                     <div class="space-y-1">
                         @foreach([
-                            ['val'=>'','label'=>'Semua Format'],
-                            ['val'=>'onsite','label'=>'Event Onsite'],
-                            ['val'=>'online','label'=>'Event Online'],
+                            ['val'=>'','label'=>'All Formats'],
+                            ['val'=>'onsite','label'=>'Onsite Event'],
+                            ['val'=>'online','label'=>'Online Event'],
                         ] as $opt)
                         <label class="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
                             <input type="radio" name="format" value="{{ $opt['val'] }}" {{ request('format')==$opt['val'] ? 'checked' : '' }} class="w-5 h-5 accent-teal-500">
@@ -329,7 +329,7 @@
                class="text-sm font-bold text-gray-500 hover:text-gray-900 transition">Reset</a>
             <button type="submit" form="filter-form"
                 class="px-8 py-2.5 bg-[#38b2ac] hover:bg-teal-600 text-white font-bold rounded-full transition shadow-md shadow-teal-500/30">
-                Terapkan
+                Apply
             </button>
         </div>
     </div>

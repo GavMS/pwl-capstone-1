@@ -25,7 +25,7 @@
                 </p>
                 <p class="text-gray-500 text-xs font-semibold flex items-center gap-1.5 lowercase">
                     <svg class="w-4 h-4 text-[#AAAAAA] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    {{ $event->date->translatedFormat('d M \'y') }} &bull; {{ $event->date->translatedFormat('H:i') }} WIB
+                    {{ $event->date->format('d M \'y') }} &bull; {{ $event->date->format('H:i') }}
                 </p>
                 {{-- City & Format badges --}}
                 <div class="flex items-center gap-1.5">
@@ -38,11 +38,11 @@
                 </div>
             </div>
             <div class="pt-4 border-t border-dashed border-gray-200 mt-auto flex justify-between items-end">
-                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Mulai dari</span>
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</span>
                 <span class="text-base font-extrabold text-[#e02424]">
                     @php $minPrice = $event->ticketTypes->min('pivot.price'); @endphp
                     @if($minPrice === null) TBA
-                    @elseif($minPrice == 0) Gratis
+                    @elseif($minPrice == 0) Free
                     @else Rp{{ number_format($minPrice, 0, ',', '.') }}
                     @endif
                 </span>
@@ -52,7 +52,7 @@
 @empty
     <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
         <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        <h3 class="text-xl font-bold text-gray-800 mb-2">Tidak ada event ditemukan.</h3>
-        <p class="text-gray-500 font-medium">Coba gunakan filter atau kata kunci lain.</p>
+        <h3 class="text-xl font-bold text-gray-800 mb-2">No events found.</h3>
+        <p class="text-gray-500 font-medium">Try using different filters or keywords.</p>
     </div>
 @endforelse

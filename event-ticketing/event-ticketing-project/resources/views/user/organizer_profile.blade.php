@@ -29,7 +29,7 @@
                     <div class="flex gap-8 mt-2 items-center">
                         <div class="flex flex-col items-center md:items-start">
                             <span class="text-2xl font-black text-[#38b2ac] leading-none">{{ $events->total() }}</span>
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Event Dimiliki</span>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Events Hosted</span>
                         </div>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="hidden md:block">
                     <a href="mailto:{{ $organizer->email }}" class="px-8 py-3 bg-[#38b2ac] hover:bg-teal-600 text-white rounded-full font-bold shadow-md shadow-teal-500/30 transition flex gap-2 items-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        Hubungi
+                        Contact
                     </a>
                 </div>
             </div>
@@ -46,7 +46,7 @@
 
         <!-- Event List Section -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h2 class="text-2xl font-bold text-gray-900 lowercase tracking-tight mb-8">event oleh {{ $organizer->name }}</h2>
+            <h2 class="text-2xl font-bold text-gray-900 lowercase tracking-tight mb-8">events by {{ $organizer->name }}</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @forelse($events as $event)
@@ -74,7 +74,7 @@
                                 </p>
                                 <p class="text-gray-500 text-xs font-semibold flex items-center justify-start gap-1.5 lowercase">
                                     <svg class="w-4 h-4 text-[#AAAAAA] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    {{ $event->date->translatedFormat('d M \'y') }} &bull; {{ $event->date->translatedFormat('H:i') }} WIB
+                                    {{ $event->date->format('d M \'y') }} &bull; {{ $event->date->format('H:i') }}
                                 </p>
                                 {{-- City & Format badges --}}
                                 <div class="flex items-center gap-1.5">
@@ -88,10 +88,10 @@
                             </div>
                             
                             <div class="pt-4 border-t border-dashed border-gray-200 mt-auto flex justify-between items-end">
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Mulai dari</span>
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</span>
                                 <span class="text-base font-extrabold text-[#e02424]">
                                     @if($event->ticketTypes->min('price') == 0)
-                                        Gratis
+                                        Free
                                     @else
                                         Rp{{ number_format($event->ticketTypes->min('price'), 0, ',', '.') }}
                                     @endif
@@ -102,8 +102,8 @@
                 @empty
                     <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 shadow-sm mt-4">
                         <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Event</h3>
-                        <p class="text-gray-500 font-medium">Kreator ini belum memiliki event yang dipublish saat ini.</p>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">No Events Yet</h3>
+                        <p class="text-gray-500 font-medium">This creator has no published events at this time.</p>
                     </div>
                 @endforelse
             </div>

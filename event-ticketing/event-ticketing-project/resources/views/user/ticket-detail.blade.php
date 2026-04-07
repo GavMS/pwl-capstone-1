@@ -5,7 +5,7 @@
             {{-- Back button --}}
             <a href="{{ route('user.my-tickets') }}" class="no-print inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-800 transition mb-8">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Kembali ke Tiket Saya
+                Back to My Tickets
             </a>
 
             @php
@@ -22,7 +22,7 @@
                     <div class="absolute -bottom-6 -left-6 w-24 h-24 bg-white/10 rounded-full"></div>
                     <p class="text-teal-200 font-bold text-xs uppercase tracking-widest mb-2">E-Ticket</p>
                     <h1 class="text-xl md:text-2xl font-extrabold leading-tight mb-1">{{ $event?->title ?? 'Event' }}</h1>
-                    <p class="text-teal-100 text-sm font-semibold">{{ $type?->name ?? 'Tiket' }}</p>
+                    <p class="text-teal-100 text-sm font-semibold">{{ $type?->name ?? 'Ticket' }}</p>
                 </div>
 
                 {{-- Perforated line --}}
@@ -38,7 +38,7 @@
                         {!! QrCode::size(200)->margin(1)->generate($ticket->unique_code) !!}
                     </div>
                     <p class="font-mono text-sm font-bold text-gray-600 tracking-widest mb-1">{{ $ticket->unique_code }}</p>
-                    <p class="text-xs font-semibold text-gray-400">Scan QR Code ini saat masuk event</p>
+                    <p class="text-xs font-semibold text-gray-400">Scan this QR Code at the event entrance</p>
                 </div>
 
                 {{-- Perforated line --}}
@@ -52,32 +52,32 @@
                 <div class="px-8 py-6 space-y-4">
                     @if($event)
                     <div class="flex justify-between items-start">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tanggal & Waktu</span>
-                        <span class="text-sm font-extrabold text-gray-900 text-right">{{ $event->date->translatedFormat('l, d F Y') }}<br>{{ $event->date->translatedFormat('H:i') }} WIB</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Date & Time</span>
+                        <span class="text-sm font-extrabold text-gray-900 text-right">{{ $event->date->format('l, d F Y') }}<br>{{ $event->date->format('H:i') }}</span>
                     </div>
                     <div class="flex justify-between items-start">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Lokasi</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Location</span>
                         <span class="text-sm font-extrabold text-gray-900 text-right">{{ $event->location }}<br>{{ $event->city }}</span>
                     </div>
                     @endif
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Harga Tiket</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ticket Price</span>
                         <span class="text-sm font-extrabold text-teal-600">
-                            {{ $ett && $ett->price == 0 ? 'Gratis' : 'Rp' . number_format($ett->price ?? 0, 0, ',', '.') }}
+                            {{ $ett && $ett->price == 0 ? 'Free' : 'Rp' . number_format($ett->price ?? 0, 0, ',', '.') }}
                         </span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</span>
                         @if($ticket->status === 'active')
-                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-extrabold rounded-full">✓ Aktif</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-extrabold rounded-full">✓ Active</span>
                         @elseif($ticket->status === 'used')
-                            <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-extrabold rounded-full">Digunakan</span>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-extrabold rounded-full">Used</span>
                         @else
-                            <span class="px-3 py-1 bg-red-100 text-red-600 text-xs font-extrabold rounded-full">Dibatalkan</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-600 text-xs font-extrabold rounded-full">Cancelled</span>
                         @endif
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pemegang</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ticket Holder</span>
                         <span class="text-sm font-extrabold text-gray-900">{{ auth()->user()->name }}</span>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                 <div class="px-8 pb-8 no-print">
                     <button onclick="window.print()" class="w-full py-3.5 rounded-xl bg-gray-900 hover:bg-gray-700 text-white font-extrabold text-sm transition flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Simpan PDF
+                        Print / Save as PDF
                     </button>
                 </div>
             </div>

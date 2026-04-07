@@ -6,12 +6,12 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-extrabold text-gray-900">Tiket Saya 🎟️</h1>
-                        <p class="text-gray-500 font-medium mt-1">Semua e-ticket yang kamu miliki ada di sini.</p>
+                        <h1 class="text-3xl font-extrabold text-gray-900">My Tickets 🎟️</h1>
+                        <p class="text-gray-500 font-medium mt-1">All your e-tickets are right here.</p>
                     </div>
                     <a href="{{ route('user.explore') }}" class="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-[#38b2ac] text-white rounded-full font-bold text-sm hover:bg-teal-600 transition shadow-md shadow-teal-500/20">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        Cari Event Lagi
+                        Find More Events
                     </a>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                 <div class="mb-8 p-5 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-4">
                     <span class="text-2xl">🎉</span>
                     <div>
-                        <p class="font-extrabold text-green-800">Pembelian Berhasil!</p>
+                        <p class="font-extrabold text-green-800">Purchase Successful!</p>
                         <p class="text-green-700 text-sm font-medium mt-0.5">{{ session('success') }}</p>
                     </div>
                 </div>
@@ -36,10 +36,10 @@
                     <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
                     </div>
-                    <h2 class="text-xl font-extrabold text-gray-800 mb-2">Kamu Belum Punya Tiket</h2>
-                    <p class="text-gray-500 font-medium mb-8">Temukan event seru dan beli tiket pertamamu sekarang!</p>
+                    <h2 class="text-xl font-extrabold text-gray-800 mb-2">You Don't Have Any Tickets Yet</h2>
+                    <p class="text-gray-500 font-medium mb-8">Discover exciting events and get your first ticket now!</p>
                     <a href="{{ route('user.explore') }}" class="inline-flex items-center gap-2 px-8 py-3 bg-[#38b2ac] text-white rounded-full font-bold hover:bg-teal-600 transition shadow-md shadow-teal-500/20">
-                        Jelajahi Event
+                        Explore Events
                     </a>
                 </div>
             @else
@@ -62,15 +62,15 @@
                                 {{-- Status Badge --}}
                                 <div class="absolute top-3 right-3">
                                     @if($ticket->status === 'active')
-                                        <span class="px-3 py-1 bg-green-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">✓ Aktif</span>
+                                        <span class="px-3 py-1 bg-green-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">✓ Active</span>
                                     @elseif($ticket->status === 'used')
-                                        <span class="px-3 py-1 bg-gray-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">Digunakan</span>
+                                        <span class="px-3 py-1 bg-gray-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">Used</span>
                                     @else
-                                        <span class="px-3 py-1 bg-red-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">Dibatalkan</span>
+                                        <span class="px-3 py-1 bg-red-500 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow">Cancelled</span>
                                     @endif
                                 </div>
                                 <div class="absolute bottom-3 left-4 right-4">
-                                    <p class="text-white font-extrabold text-sm line-clamp-1 drop-shadow">{{ $event?->title ?? 'Event tidak ditemukan' }}</p>
+                                    <p class="text-white font-extrabold text-sm line-clamp-1 drop-shadow">{{ $event?->title ?? 'Event not found' }}</p>
                                 </div>
                             </div>
 
@@ -78,13 +78,13 @@
                             <div class="p-5 flex flex-col flex-1">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
-                                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Tipe Tiket</p>
+                                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Ticket Type</p>
                                         <p class="font-extrabold text-gray-900">{{ $type?->name ?? '-' }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Harga Satuan</p>
+                                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Unit Price</p>
                                         <p class="font-extrabold text-teal-600">
-                                            {{ $ett && $ett->price == 0 ? 'Gratis' : 'Rp' . number_format($ett->price ?? 0, 0, ',', '.') }}
+                                            {{ $ett && $ett->price == 0 ? 'Free' : 'Rp' . number_format($ett->price ?? 0, 0, ',', '.') }}
                                         </p>
                                     </div>
                                 </div>
@@ -92,7 +92,7 @@
                                 @if($event)
                                 <div class="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-4">
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    {{ $event->date->translatedFormat('d F Y, H:i') }} WIB
+                                    {{ $event->date->format('d F Y, H:i') }}
                                 </div>
                                 @endif
 
@@ -105,7 +105,7 @@
                                 </div>
 
                                 <a href="{{ route('user.ticket.detail', $ticket->unique_code) }}" class="mt-auto block w-full text-center py-3 rounded-xl border-2 border-[#38b2ac] text-[#38b2ac] font-extrabold text-sm hover:bg-[#38b2ac] hover:text-white transition">
-                                    Lihat Detail & Cetak
+                                    View Detail & Print
                                 </a>
                             </div>
                         </div>
