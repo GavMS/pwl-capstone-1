@@ -7,7 +7,7 @@
                 <div class="relative border-b border-gray-300 pb-2 flex gap-4 items-center">
                     <svg class="w-6 h-6 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input id="search-input" type="text" name="search" value="{{ request('search') }}"
-                        placeholder="Cari kreator..."
+                        placeholder="Search creators..."
                         class="w-full bg-transparent border-none focus:ring-0 text-xl md:text-2xl font-bold placeholder-gray-400 p-0 outline-none"
                         autocomplete="off">
                 </div>
@@ -22,13 +22,13 @@
                     </a>
                     <a href="{{ route('user.explore.creators') }}" class="px-8 py-2.5 rounded-full text-sm font-bold bg-[#f4fbfc] text-[#38b2ac] transition flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Kreator
+                        Creators
                     </a>
                 </div>
             </div>
 
             <!-- Total Results -->
-            <p class="text-gray-600 font-medium mb-6 text-center sm:text-left">{{ $organizers->total() }} kreator ditemukan</p>
+            <p class="text-gray-600 font-medium mb-6 text-center sm:text-left">{{ $organizers->total() }} {{ $organizers->total() === 1 ? 'creator' : 'creators' }} found</p>
 
             <!-- Creators List (2 columns like GOERS) -->
             <!-- Creators List  -->
@@ -54,15 +54,15 @@
                         <!-- Action Button -->
                         <div class="w-full sm:w-auto mt-2 sm:mt-0 flex justify-end">
                             <a href="{{ route('user.organizer.profile', $creator->id) }}" class="px-6 py-2 bg-[#14b8a6] hover:bg-teal-600 text-white font-bold rounded-full text-sm transition shadow-sm w-full sm:w-auto text-center">
-                                Profil
+                                View Profile
                             </a>
                         </div>
                     </div>
                 @empty
                     <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
                         <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">Kreator tidak ditemukan.</h3>
-                        <p class="text-gray-500 font-medium">Coba gunakan kata kunci pencarian yang lain.</p>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">No creators found.</h3>
+                        <p class="text-gray-500 font-medium">Try using different search keywords.</p>
                     </div>
                 @endforelse
             </div>

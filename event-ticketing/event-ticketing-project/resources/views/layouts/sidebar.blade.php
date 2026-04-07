@@ -1,20 +1,17 @@
 <aside class="sidebar" :class="sidebarOpen ? 'open' : 'closed'">
-    <!-- Logo -->
     <div class="sidebar-logo-container border-b border-transparent flex items-center" :class="sidebarOpen ? 'px-6 justify-between' : 'justify-center w-full !px-0'">
         <a href="/" class="sidebar-logo-text">
-            logo.
+            Flowtix
         </a>
         <button @click="sidebarOpen = !sidebarOpen" class="p-2 text-[#555555] rounded-xl hover:bg-gray-100 transition flex-shrink-0" :class="sidebarOpen ? '-mr-2' : ''">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
     </div>
 
-    <!-- Navigation List -->
     <div class="nav-container">
         <p class="menu-label">menu</p>
 
         @if (Auth::user()->role === 'admin')
-            <!-- ADMIN LINKS -->
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -39,9 +36,8 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 financials
             </a>
-            
+
         @elseif (Auth::user()->role === 'organizer')
-            <!-- ORGANIZER LINKS -->
             <a href="{{ route('organizer.dashboard') }}" class="nav-link {{ request()->routeIs('organizer.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -56,7 +52,6 @@
             </a>
 
         @else
-            <!-- USER LINKS -->
             <a href="{{ route('user.dashboard') }}" class="nav-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -76,7 +71,6 @@
         @endif
     </div>
 
-    <!-- User Profile & Logout Box -->
     <div class="profile-box">
         <a href="{{ route('profile.edit') }}" class="profile-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
             <div class="avatar-circle">
@@ -87,7 +81,7 @@
                 <p style="margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">{{ Auth::user()->role }}</p>
             </div>
         </a>
-        
+
         <form id="logout-form" method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="button" onclick="confirmLogout(event)" class="btn-signout">

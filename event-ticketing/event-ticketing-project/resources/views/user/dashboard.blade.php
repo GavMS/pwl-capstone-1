@@ -26,7 +26,7 @@
             <section class="relative z-40">
                 <div class="relative bg-white rounded-full shadow-md border border-gray-100 flex items-center px-6 py-4 transition-all focus-within:ring-2 focus-within:ring-[#38b2ac]">
                     <svg class="w-6 h-6 text-gray-400 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input type="text" id="liveSearchInput" autocomplete="off" placeholder="Cari event seru disini..." class="w-full bg-transparent border-none text-lg lg:text-xl font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 lowercase">
+                    <input type="text" id="liveSearchInput" autocomplete="off" placeholder="Search for events..." class="w-full bg-transparent border-none text-lg lg:text-xl font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 lowercase">
                     <button type="button" id="clearSearchBtn" class="hidden text-gray-400 hover:text-gray-600 ml-4 p-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -40,7 +40,7 @@
                 <!-- Hasil Recommendation Dropdown -->
                 <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-3 bg-white border border-gray-100 rounded-3xl shadow-xl overflow-hidden max-h-[400px] overflow-y-auto w-full z-50">
                     <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Event Rekomendasi</span>
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Recommended Events</span>
                     </div>
                     <ul id="searchResultsList" class="divide-y divide-gray-100">
                         <!-- Hasil Javascript di-inject ke sini -->
@@ -52,7 +52,7 @@
             <section class="relative">
                 @if($heroEvents->isEmpty())
                 <div class="w-full h-[400px] bg-gray-200 rounded-[2rem] flex items-center justify-center">
-                    <p class="text-gray-500 font-medium lowercase">belum ada event tersedia.</p>
+                    <p class="text-gray-500 font-medium lowercase">no events available yet.</p>
                 </div>
                 @else
                 @php $heroEvent = $heroEvents->first(); @endphp
@@ -85,11 +85,11 @@
                     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 </style>
                 <div class="flex justify-between items-end mb-5">
-                    <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">kategori event</h3>
+                    <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">event categories</h3>
                 </div>
                 
                 @if($categories->isEmpty())
-                <p class="text-gray-500 text-sm lowercase">belum ada kategori.</p>
+                <p class="text-gray-500 text-sm lowercase">no categories yet.</p>
                 @else
                 <div class="relative group/carousel">
                     <div class="flex gap-4 overflow-x-auto snap-x hide-scrollbar pb-4" id="categoryContainer" style="scroll-behavior: smooth;">
@@ -107,7 +107,7 @@
                             <div class="w-14 h-14 bg-[#F4F4F4] group-hover:bg-[#E5E5E3] transition rounded-full flex items-center justify-center text-[#777777]">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                             </div>
-                            <span class="text-[10px] font-bold text-[#555555] text-center uppercase tracking-widest">semua event</span>
+                            <span class="text-[10px] font-bold text-[#555555] text-center uppercase tracking-widest">all events</span>
                         </a>
                     </div>
                     
@@ -128,11 +128,11 @@
             <section>
                 <div class="flex justify-between items-end mb-5">
                     <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">featured events</h3>
-                    <a href="{{ route('user.explore') }}" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">lihat semua &rarr;</a>
+                    <a href="{{ route('user.explore') }}" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">see all &rarr;</a>
                 </div>
 
                 @if($featuredEvents->isEmpty())
-                <p class="text-gray-500 text-sm lowercase">belum ada event yang tersedia.</p>
+                <p class="text-gray-500 text-sm lowercase">no events available yet.</p>
                 @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach($featuredEvents as $event)
@@ -152,7 +152,7 @@
                                     $lowestPrice = $event->ticketTypes->min('pivot.price');
                                 @endphp
                                 @if($lowestPrice !== null)
-                                    {{ $lowestPrice == 0 ? 'Gratis' : 'Rp' . number_format($lowestPrice, 0, ',', '.') }}
+                                    {{ $lowestPrice == 0 ? 'Free' : 'Rp' . number_format($lowestPrice, 0, ',', '.') }}
                                 @else
                                     TBA
                                 @endif
@@ -181,8 +181,8 @@
                 <div class="relative rounded-[2rem] shadow-sm overflow-hidden bg-[#444444] p-10 md:p-14">
                     <div class="relative z-10">
                         <span class="inline-block px-3 py-1 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg text-[10px] font-extrabold uppercase tracking-widest mb-3 shadow-sm">Flowtix</span>
-                        <h2 class="text-xl md:text-3xl font-extrabold text-white mb-2 leading-tight">Temukan event terbaik,<br class="hidden md:block"> di satu tempat.</h2>
-                        <p class="text-[#CCCCCC] font-medium text-xs md:text-sm max-w-lg">Dari konser hingga workshop — Flowtix memudahkan kamu menemukan &amp; memesan tiket event favoritmu.</p>
+                        <h2 class="text-xl md:text-3xl font-extrabold text-white mb-2 leading-tight">Discover the best events,<br class="hidden md:block"> all in one place.</h2>
+                        <p class="text-[#CCCCCC] font-medium text-xs md:text-sm max-w-lg">From concerts to workshops — Flowtix makes it easy to find &amp; book tickets for your favorite events.</p>
                     </div>
                     <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="absolute -bottom-12 right-1/3 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -194,7 +194,7 @@
             <section>
                 <div class="flex justify-between items-end mb-5">
                     <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">my upcoming tickets</h3>
-                    <a href="#" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">semua tiket &rarr;</a>
+                    <a href="#" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">all tickets &rarr;</a>
                 </div>
                 
                 {{-- TODO: Replace with real user tickets from DB when ticket purchase flow is implemented --}}
@@ -225,7 +225,7 @@
             <!-- ── Kreator Favorit ── -->
             <section class="pb-4">
                 <div class="flex justify-between items-end mb-5">
-                    <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">kreator favorit</h3>
+                    <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">favorite creators</h3>
                 </div>
                 <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4 md:gap-8">
                     @foreach($organizers->take(7) as $organizer)
@@ -242,7 +242,7 @@
                         <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center p-1 shadow-sm group-hover:shadow-md transition text-[#555555]">
                             <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
-                        <span class="text-[10px] font-bold text-[#555555] text-center w-full truncate px-1">Lihat Semua</span>
+                        <span class="text-[10px] font-bold text-[#555555] text-center w-full truncate px-1">View All</span>
                     </a>
                 </div>
             </section>
@@ -325,7 +325,7 @@
                 if (results.length === 0) {
                     searchList.innerHTML = `
                         <li class="px-6 py-8 text-center">
-                            <span class="text-sm font-medium text-gray-500 lowercase">Ops, event pakai keyword "${query}" gak ketemu.</span>
+                            <span class="text-sm font-medium text-gray-500 lowercase">No events found for "${query}".</span>
                         </li>`;
                 } else {
                     // Tampilkan maksimal 5 hasil agar tidak telalu penuh
@@ -361,7 +361,7 @@
                         htmlList += `
                             <li>
                                 <a href="/explore?search=${encodeURIComponent(query)}" class="px-6 py-4 bg-gray-50/50 hover:bg-gray-100 flex items-center justify-center transition border-t border-gray-100">
-                                    <span class="text-xs font-bold text-[#38b2ac] uppercase tracking-widest">Lihat ${results.length} hasil lainnya</span>
+                                    <span class="text-xs font-bold text-[#38b2ac] uppercase tracking-widest">View ${results.length} more results</span>
                                 </a>
                             </li>
                         `;

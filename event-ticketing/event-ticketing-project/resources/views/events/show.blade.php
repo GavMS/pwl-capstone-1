@@ -34,7 +34,7 @@
                                 {{ substr($event->organizer->name, 0, 1) }}
                             </div>
                             <div>
-                                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Penyelenggara</p>
+                                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-1">Organizer</p>
                                 <p class="text-sm font-extrabold text-gray-900 leading-none group-hover:text-teal-600 transition">{{ $event->organizer->name }}</p>
                             </div>
                         </a>
@@ -47,8 +47,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tanggal & Waktu</p>
-                                    <p class="text-gray-900 text-sm md:text-base font-bold">{{ $event->date->translatedFormat('l, d F Y') }} &bull; {{ $event->date->translatedFormat('H:i') }} WIB</p>
+                                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Date & Time</p>
+                                    <p class="text-gray-900 text-sm md:text-base font-bold">{{ $event->date->format('l, d F Y') }} &bull; {{ $event->date->format('H:i') }}</p>
                                 </div>
                             </div>
                             <div class="w-full h-px bg-gray-200 md:hidden"></div>
@@ -61,26 +61,26 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Lokasi Event</p>
+                                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Event Location</p>
                                     <p class="text-gray-900 text-sm md:text-base font-bold">{{ $event->location }}, {{ $event->city }}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="prose prose-teal max-w-none text-gray-600">
-                            <h3 class="text-xl font-bold text-gray-900 mb-4">Deskripsi Event</h3>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Event Description</h3>
                             {!! nl2br(e($event->description)) !!}
                         </div>
                     </div>
 
                     {{-- Ticket Selection Layout --}}
                     <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100" id="ticket-selection">
-                        <h3 class="text-2xl font-extrabold text-gray-900 mb-1">Pilih Tiket</h3>
-                        <p class="text-gray-500 font-medium mb-6 text-sm">Pilih tiket yang tersedia secara bersamaan.</p>
+                        <h3 class="text-2xl font-extrabold text-gray-900 mb-1">Select Tickets</h3>
+                        <p class="text-gray-500 font-medium mb-6 text-sm">Select from the available ticket types below.</p>
 
                         @if($event->ticketTypes->isEmpty())
                             <div class="text-center p-6 bg-red-50 rounded-2xl border border-red-100">
-                                <p class="text-red-500 font-bold">Tiket belum tersedia saat ini.</p>
+                                <p class="text-red-500 font-bold">No tickets available at this time.</p>
                             </div>
                         @else
                             <div class="space-y-4">
@@ -88,14 +88,14 @@
                                     <div class="border {{ $ticket->pivot->stock > 0 ? 'border-gray-200 hover:border-[#38b2ac]' : 'border-red-100 bg-red-50/30' }} rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 transition">
                                         <div class="flex-1">
                                             <h4 class="font-extrabold text-gray-900 text-lg mb-1">{{ $ticket->name }}</h4>
-                                            <p class="text-sm text-gray-500 line-clamp-2 mb-3">{{ $ticket->description ?? 'Tidak ada deskripsi' }}</p>
+                                            <p class="text-sm text-gray-500 line-clamp-2 mb-3">{{ $ticket->description ?? 'No description available' }}</p>
                                             <span class="text-[11px] px-2.5 py-1 bg-gray-100 {{ $ticket->pivot->stock < 10 ? 'text-red-500' : 'text-gray-500' }} rounded-md font-bold uppercase tracking-wider">
-                                                Sisa: {{ $ticket->pivot->stock }} Tiket
+                                                {{ $ticket->pivot->stock }} Remaining
                                             </span>
                                         </div>
                                         <div class="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3">
                                             <span class="font-black text-teal-600 text-xl whitespace-nowrap">
-                                                {{ $ticket->pivot->price == 0 ? 'Gratis' : 'Rp' . number_format($ticket->pivot->price, 0, ',', '.') }}
+                                                {{ $ticket->pivot->price == 0 ? 'Free' : 'Rp' . number_format($ticket->pivot->price, 0, ',', '.') }}
                                             </span>
                                             @if($ticket->pivot->stock > 0)
                                                 <div class="flex flex-col items-end">
@@ -107,10 +107,10 @@
                                                         <button type="button" onclick="changeQty({{ $ticket->pivot->id }}, 1, '{{ $ticket->name }}', {{ $ticket->pivot->price }}, {{ min(10, $ticket->pivot->stock) }})" 
                                                             class="w-8 h-8 rounded-full bg-[#38b2ac] hover:bg-teal-600 text-white font-bold flex items-center justify-center transition shadow-sm select-none">&plus;</button>
                                                     </div>
-                                                    <p class="text-[10px] text-gray-400 font-semibold mt-1">Maks. {{ min(10, $ticket->pivot->stock) }} tix</p>
+                                                    <p class="text-[10px] text-gray-400 font-semibold mt-1">Max. {{ min(10, $ticket->pivot->stock) }} tickets</p>
                                                 </div>
                                             @else
-                                                <span class="px-4 py-2 bg-red-100 text-red-600 font-black text-xs uppercase tracking-widest rounded-lg">Habis</span>
+                                                <span class="px-4 py-2 bg-red-100 text-red-600 font-black text-xs uppercase tracking-widest rounded-lg">Sold Out</span>
                                             @endif
                                         </div>
                                     </div>
@@ -123,11 +123,11 @@
                 {{-- Sidebar Column (Your Order) --}}
                 <div class="lg:col-span-4 space-y-6">
                     <div class="bg-white rounded-3xl shadow-xl shadow-teal-500/5 border border-teal-100 p-6 sticky top-24">
-                        <h3 class="text-lg font-extrabold text-gray-900 mb-4">Pesanan Anda</h3>
+                        <h3 class="text-lg font-extrabold text-gray-900 mb-4">Your Order</h3>
                         
                         <div id="empty-cart" class="text-center py-10">
                             <svg class="w-16 h-16 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                            <p class="text-gray-500 text-sm font-semibold">Belum ada tiket yang dipilih.</p>
+                            <p class="text-gray-500 text-sm font-semibold">No tickets selected yet.</p>
                         </div>
 
                         <!-- Checkout Form —> posts to CheckoutController -->
@@ -152,12 +152,12 @@
                                     </div>
                                 @endif
                                 <div class="flex justify-between items-center mb-6">
-                                    <span class="text-gray-500 font-semibold text-sm" id="total-tickets-label">Total (0 Tiket)</span>
+                                    <span class="text-gray-500 font-semibold text-sm" id="total-tickets-label">Total (0 Tickets)</span>
                                     <span class="text-2xl font-black text-[#38b2ac]" id="total-price-label">Rp0</span>
                                 </div>
 
                                 <button type="button" onclick="attemptCheckout()" class="w-full py-3.5 rounded-xl bg-[#38b2ac] hover:bg-teal-600 text-white font-extrabold text-lg transition shadow-md shadow-teal-500/30 flex justify-center items-center gap-2 group">
-                                    Beli Tiket
+                                    Purchase Tickets
                                     <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>
@@ -242,7 +242,7 @@
                         <div class="flex items-start justify-between gap-3 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                             <div class="flex-1">
                                 <h5 class="text-sm font-extrabold text-gray-900 leading-snug mb-1">${item.name}</h5>
-                                <div class="text-xs font-bold text-teal-600 mb-2">${item.price === 0 ? 'Gratis' : formatRupiah(item.price)}</div>
+                                <div class="text-xs font-bold text-teal-600 mb-2">${item.price === 0 ? 'Free' : formatRupiah(item.price)}</div>
                                 
                                 <div class="flex items-center gap-2">
                                     <button type="button" onclick="changeQty(${item.id}, -1, '${item.name}', ${item.price})" class="w-6 h-6 rounded-full bg-white border border-gray-200 text-teal-600 hover:bg-teal-50 font-bold flex items-center justify-center transition shadow-sm leading-none select-none">&minus;</button>
@@ -259,13 +259,13 @@
                 });
             }
 
-            document.getElementById('total-tickets-label').innerText = `Total (${totalQty} Tiket)`;
-            document.getElementById('total-price-label').innerText = totalPrice === 0 ? 'Gratis' : formatRupiah(totalPrice);
+            document.getElementById('total-tickets-label').innerText = `Total (${totalQty} Ticket${totalQty !== 1 ? 's' : ''})`;
+            document.getElementById('total-price-label').innerText = totalPrice === 0 ? 'Free' : formatRupiah(totalPrice);
         }
 
         function attemptCheckout() {
             if (Object.keys(cart).length === 0) {
-                alert('Silakan pilih minimal 1 tiket.');
+                alert('Please select at least 1 ticket.');
                 return false;
             }
 
