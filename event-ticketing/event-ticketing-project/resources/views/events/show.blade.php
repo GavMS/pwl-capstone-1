@@ -131,7 +131,7 @@
                         </div>
 
                         <!-- Checkout Form —> posts to CheckoutController -->
-                        <form action="{{ route('checkout.process') }}" method="POST" id="checkout-form" class="hidden flex-col gap-4">
+                        <form action="{{ route('checkout.confirm') }}" method="POST" id="checkout-form" class="hidden flex-col gap-4">
                             @csrf
                             <input type="hidden" name="event_id" value="{{ $event->id_event }}">
                             {{-- Hidden inputs untuk cart; diisi oleh JavaScript --}}
@@ -141,9 +141,14 @@
                             </div>
 
                             <div class="pt-5 border-t border-dashed border-gray-200 mt-2">
-                                @if ($errors->has('checkout'))
+                                @if ($errors->any())
                                     <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-semibold">
-                                        ⚠️ {{ $errors->first('checkout') }}
+                                        ⚠️ Gagal diproses:
+                                        <ul class="list-disc ml-5 mt-1">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
                                     </div>
                                 @endif
                                 @if (session('success'))

@@ -7,6 +7,7 @@ use App\Models\EventCategories;
 use App\Models\Accounts;
 use App\Models\Events;
 use App\Models\IssuedTicket;
+use App\Models\Transaction;
 
 class UserController extends Controller
 {
@@ -64,7 +65,14 @@ class UserController extends Controller
             ->take(4)
             ->values();
 
-        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents', 'allEventsLite', 'upcomingTickets'));
+        // Ambil transaksi yang masih PENDING dan belum EXPIRE
+        $pendingTransactions = Transaction::where('accounts_id', $user->id)
+            ->where('status', 'pending')
+            ->where('deadline_payment', '>', now())
+            ->orderBy('deadline_payment', 'asc')
+            ->get();
+
+        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents', 'allEventsLite', 'upcomingTickets', 'pendingTransactions'));
     }
 
     // Halaman Explore / Browse Events

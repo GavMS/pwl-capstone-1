@@ -15,72 +15,72 @@ class AccountSeeder extends Seeder
     {
         // ── Akun Fixed ──────────────────────────────────────────────
         Accounts::create([
-            'name'     => 'Gavin Malik Setiawan',
+            'name' => 'Gavin Malik Setiawan',
             'username' => 'GavMS',
-            'email'    => '2472042@maranatha.ac.id',
+            'email' => '2472042@maranatha.ac.id',
             'password' => Hash::make('password'),
-            'role'     => 'admin',
+            'role' => 'admin',
         ]);
 
         Accounts::create([
-            'name'     => 'Yosua Juswandiputra',
-            'username' => 'Yosua',
-            'email'    => '2472027@maranatha.ac.id',
+            'name' => 'Yosua Juswandiputra',
+            'username' => 'yosua',
+            'email' => '2472027@maranatha.ac.id',
             'password' => Hash::make('password'),
-            'role'     => 'user',
+            'role' => 'user',
         ]);
 
         // ── Organizer Accounts ──────────────────────────────────────
         $organizers = [
             [
-                'name'     => 'Archangela Sheilla',
+                'name' => 'Archangela Sheilla',
                 'username' => 'sourrossie',
-                'email'    => '2472014@maranatha.ac.id',
+                'email' => '2472014@maranatha.ac.id',
             ],
             [
-                'name'     => 'Scent of Indonesia',
+                'name' => 'Scent of Indonesia',
                 'username' => 'scentofindo',
-                'email'    => 'organizer.scentofindo@flowtix.id',
+                'email' => 'organizer.scentofindo@flowtix.id',
             ],
             [
-                'name'     => 'MAS Live Entertainment',
+                'name' => 'MAS Live Entertainment',
                 'username' => 'maslive',
-                'email'    => 'organizer.maslive@flowtix.id',
+                'email' => 'organizer.maslive@flowtix.id',
             ],
             [
-                'name'     => 'Boss Creator Studio',
+                'name' => 'Boss Creator Studio',
                 'username' => 'bosscreator',
-                'email'    => 'organizer.bosscreator@flowtix.id',
+                'email' => 'organizer.bosscreator@flowtix.id',
             ],
             [
-                'name'     => 'Comika Event',
+                'name' => 'Comika Event',
                 'username' => 'comikaevent',
-                'email'    => 'organizer.comika@flowtix.id',
+                'email' => 'organizer.comika@flowtix.id',
             ],
             [
-                'name'     => 'Voluntrip Indonesia',
+                'name' => 'Voluntrip Indonesia',
                 'username' => 'voluntrip',
-                'email'    => 'organizer.voluntrip@flowtix.id',
+                'email' => 'organizer.voluntrip@flowtix.id',
             ],
             [
-                'name'     => 'Bengkel Space',
+                'name' => 'Bengkel Space',
                 'username' => 'bengkelspace',
-                'email'    => 'organizer.bengkelspace@flowtix.id',
+                'email' => 'organizer.bengkelspace@flowtix.id',
             ],
             [
-                'name'     => 'Mantappu Jiwa Events',
+                'name' => 'Mantappu Jiwa Events',
                 'username' => 'mantappujiwa',
-                'email'    => 'organizer.mantappu@flowtix.id',
+                'email' => 'organizer.mantappu@flowtix.id',
             ],
             [
-                'name'     => 'Ismaya Live',
+                'name' => 'Ismaya Live',
                 'username' => 'ismayalive',
-                'email'    => 'organizer.ismaya@flowtix.id',
+                'email' => 'organizer.ismaya@flowtix.id',
             ],
             [
-                'name'     => 'PK Entertainment',
+                'name' => 'PK Entertainment',
                 'username' => 'pkent',
-                'email'    => 'organizer.pkent@flowtix.id',
+                'email' => 'organizer.pkent@flowtix.id',
             ],
         ];
 
@@ -89,7 +89,7 @@ class AccountSeeder extends Seeder
                 ['email' => $org['email']],
                 array_merge($org, [
                     'password' => Hash::make('password'),
-                    'role'     => 'organizer',
+                    'role' => 'organizer',
                 ])
             );
         }

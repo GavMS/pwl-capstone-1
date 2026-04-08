@@ -19,15 +19,34 @@
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-            {{-- Success Flash --}}
+            {{-- Success Toast Notification --}}
             @if(session('success'))
-                <div class="mb-8 p-5 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-4">
-                    <span class="text-2xl">🎉</span>
-                    <div>
-                        <p class="font-extrabold text-green-800">Purchase Successful!</p>
-                        <p class="text-green-700 text-sm font-medium mt-0.5">{{ session('success') }}</p>
+                <div id="success-toast" class="fixed top-24 right-5 transform translate-x-full opacity-0 transition-all duration-700 ease-in-out z-50 flex items-center bg-white border border-green-100 p-5 rounded-2xl shadow-2xl max-w-sm">
+                    <div class="w-12 h-12 bg-green-50 text-green-500 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     </div>
+                    <div class="ml-4 mr-8">
+                        <p class="font-extrabold text-gray-900 leading-tight">Great News!</p>
+                        <p class="text-gray-500 text-xs font-semibold mt-1">{{ session('success') }}</p>
+                    </div>
+                    <button onclick="document.getElementById('success-toast').classList.add('translate-x-full', 'opacity-0')" class="absolute top-3 right-3 text-gray-300 hover:text-gray-500 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const toast = document.getElementById('success-toast');
+                        setTimeout(() => {
+                            toast.classList.remove('translate-x-full', 'opacity-0');
+                            toast.classList.add('translate-x-0', 'opacity-100');
+                        }, 300);
+
+                        setTimeout(() => {
+                            toast.classList.add('translate-x-full', 'opacity-0');
+                        }, 6000);
+                    });
+                </script>
             @endif
 
             @if($tickets->isEmpty())
