@@ -190,36 +190,51 @@
             </section>
 
             <!-- ── My Upcoming Tickets ── -->
-
             <section>
                 <div class="flex justify-between items-end mb-5">
                     <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">my upcoming tickets</h3>
-                    <a href="#" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">all tickets &rarr;</a>
+                    <a href="{{ route('user.my-tickets') }}" class="text-sm font-bold text-[#777777] hover:text-black lowercase transition">all tickets &rarr;</a>
                 </div>
-                
-                {{-- TODO: Replace with real user tickets from DB when ticket purchase flow is implemented --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-90">
-                    <div class="bg-transparent border-2 border-white p-4 rounded-[2rem] flex items-center gap-4 hover:bg-white hover:border-transparent transition cursor-pointer">
-                        <div class="w-20 h-20 bg-gray-200 rounded-[1.2rem] overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1540039155732-d674ce313cb6?q=80&w=400&auto=format&fit=crop" alt="Event" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-grow">
-                            <span class="inline-block px-2 py-0.5 bg-[#F4F4F4] text-[#555555] text-[9px] font-bold rounded-md mb-1.5 uppercase tracking-widest">Oct 24, 2026</span>
-                            <h4 class="text-base font-bold text-[#444444] leading-tight mb-1">Neon Lights Festival</h4>
-                            <p class="text-[11px] font-medium text-[#777777]">GBK Stadium, Jakarta</p>
-                        </div>
-                    </div>
-                    <div class="bg-transparent border-2 border-white p-4 rounded-[2rem] flex items-center gap-4 hover:bg-white hover:border-transparent transition cursor-pointer">
-                        <div class="w-20 h-20 bg-gray-200 rounded-[1.2rem] overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=400&auto=format&fit=crop" alt="Event" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-grow">
-                            <span class="inline-block px-2 py-0.5 bg-[#F4F4F4] text-[#555555] text-[9px] font-bold rounded-md mb-1.5 uppercase tracking-widest">Nov 12, 2026</span>
-                            <h4 class="text-base font-bold text-[#444444] leading-tight mb-1">Startup Summit '26</h4>
-                            <p class="text-[11px] font-medium text-[#777777]">ICE BSD, Tangerang</p>
-                        </div>
-                    </div>
+
+                @if($upcomingTickets->isEmpty())
+                <div class="bg-white/60 border-2 border-dashed border-gray-200 rounded-[2rem] p-10 flex flex-col items-center justify-center text-center gap-3">
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                    <p class="text-sm font-bold text-gray-400 lowercase">belum ada tiket yang dibeli.</p>
+                    <a href="{{ route('user.explore') }}" class="mt-1 px-5 py-2 bg-[#555555] text-white rounded-full text-xs font-bold hover:bg-black transition lowercase">cari event sekarang</a>
                 </div>
+                @else
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($upcomingTickets as $ticket)
+                    @php
+                        $event = $ticket->eventTicketType->event;
+                        $ticketTypeName = $ticket->eventTicketType->ticketType->name ?? 'Tiket';
+                    @endphp
+                    <a href="{{ route('user.ticket.detail', $ticket->unique_code) }}" class="bg-white border border-gray-100 hover:border-gray-200 p-4 rounded-[2rem] flex items-center gap-4 hover:shadow-md transition group">
+                        <!-- Event Banner -->
+                        <div class="w-20 h-20 bg-gray-200 rounded-[1.2rem] overflow-hidden flex-shrink-0">
+                            @if($event->banner)
+                                <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            @else
+                                <div class="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
+                            @endif
+                        </div>
+                        <!-- Info -->
+                        <div class="flex-grow overflow-hidden">
+                            <span class="inline-block px-2 py-0.5 bg-[#F4F4F4] text-[#555555] text-[9px] font-bold rounded-md mb-1.5 uppercase tracking-widest">
+                                {{ $event->date->format('M d, Y') }}
+                            </span>
+                            <h4 class="text-sm font-bold text-[#444444] leading-tight mb-0.5 truncate group-hover:text-[#38b2ac] transition">{{ $event->title }}</h4>
+                            <p class="text-[11px] font-medium text-[#777777] truncate">{{ $event->location }}</p>
+                        </div>
+                        <!-- Ticket type badge & arrow -->
+                        <div class="flex-shrink-0 flex flex-col items-end gap-2 pl-2">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-teal-700 uppercase tracking-wide whitespace-nowrap">{{ $ticketTypeName }}</span>
+                            <svg class="w-4 h-4 text-gray-300 group-hover:text-[#38b2ac] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+                @endif
             </section>
 
             <!-- ── Kreator Favorit ── -->

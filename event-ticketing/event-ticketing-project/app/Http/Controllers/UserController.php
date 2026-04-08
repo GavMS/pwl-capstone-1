@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\EventCategories;
 use App\Models\Accounts;
 use App\Models\Events;
+use App\Models\IssuedTicket;
 
 class UserController extends Controller
 {
@@ -50,7 +51,20 @@ class UserController extends Controller
                 ];
             });
 
-        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents', 'allEventsLite'));
+        // Upcoming tickets user yang sudah dibeli (event belum berlangsung)
+        $upcomingTickets = IssuedTicket::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->with([
+                'eventTicketType.event.organizer',
+                'eventTicketType.ticketType',
+            ])
+            ->get()
+            ->filter(fn($ticket) => optional($ticket->eventTicketType->event)->date >= now())
+            ->sortBy(fn($ticket) => $ticket->eventTicketType->event->date)
+            ->take(4)
+            ->values();
+
+        return view('user.dashboard', compact('user', 'categories', 'organizers', 'heroEvents', 'featuredEvents', 'allEventsLite', 'upcomingTickets'));
     }
 
     // Halaman Explore / Browse Events
