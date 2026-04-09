@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            '/midtrans/callback',
+            'midtrans/callback',
+            'midtrans/*',
+        ]);
+
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
             return route('login');
         });

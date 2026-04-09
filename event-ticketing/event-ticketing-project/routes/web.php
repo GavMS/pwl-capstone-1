@@ -33,7 +33,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/event/{id}', [EventController::class, 'show'])->name('events.show');
 
     // Checkout
-    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
+    Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    Route::get('/checkout/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
+    Route::post('/checkout/{order_id}/recreate', [\App\Http\Controllers\CheckoutController::class, 'recreate'])->name('checkout.recreate');
+    Route::post('/checkout/{order_id}/mock', [\App\Http\Controllers\CheckoutController::class, 'mockSuccess'])->name('checkout.mock');
 
     // My Tickets
     Route::get('/my-tickets', [\App\Http\Controllers\UserTicketController::class, 'index'])->name('user.my-tickets');
@@ -97,5 +101,8 @@ Route::middleware(['auth', 'role:organizer'])->group(function () {
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/user/dashboard', [\App\Http\Controllers\UserController::class, 'dashboard'])->name('user.dashboard');
 });
+
+// Midtrans Webhook (Sengaja diluar auth middleware)
+Route::post('/midtrans/callback', [\App\Http\Controllers\PaymentCallbackController::class, 'handle'])->name('midtrans.callback');
 
 require __DIR__ . '/auth.php';
