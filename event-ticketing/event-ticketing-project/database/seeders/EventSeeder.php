@@ -15,9 +15,11 @@ class EventSeeder extends Seeder
      */
     public function run(): void
     {
-        $organizers = Accounts::where('role', 'organizer')->pluck('id')->toArray();
-        $fallbackOrganizer = Accounts::first()->id ?? null;
-        
+        $organizerId = Accounts::where('role', 'organizer')->first()->id ?? Accounts::first()->id ?? null;
+
+        // Pilih sourrossie sebagai organizer khusus DevFest jika ada
+        $sourrossieId = Accounts::where('name', 'like', '%sourrossie%')->first()->id ?? $organizerId;
+
         $categories = EventCategories::pluck('id_category', 'slug');
         $ticketTypes = TicketType::pluck('id_ticket_type', 'name');
 
@@ -28,11 +30,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'DevFest Bandung 2026'],
                 'data' => [
                     'category_id' => $categories['developer-conference'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $sourrossieId,
                     'description' => 'Developer conference featuring practical talks, coding demos, and networking.',
                     'location' => 'Universitas Kristen Maranatha',
-                    'city'     => 'Bandung',
-                    'format'   => 'onsite',
+                    'city' => 'Bandung',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy(),
                     'status' => 'published',
                 ],
@@ -46,11 +48,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'AI Hands-on Workshop'],
                 'data' => [
                     'category_id' => $categories['tech-workshop'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Workshop session covering AI fundamentals with guided mini projects.',
                     'location' => 'Institut Teknologi Bandung (ITB)',
-                    'city'     => 'Bandung',
-                    'format'   => 'onsite',
+                    'city' => 'Bandung',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(7),
                     'status' => 'published',
                 ],
@@ -64,11 +66,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'Startup Connect Night'],
                 'data' => [
                     'category_id' => $categories['startup-networking'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Networking event to connect students, founders, and industry mentors.',
                     'location' => 'Bandung Creative Hub',
-                    'city'     => 'Bandung',
-                    'format'   => 'onsite',
+                    'city' => 'Bandung',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(14),
                     'status' => 'published',
                 ],
@@ -82,11 +84,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'ASIAN KUNG-FU GENERATION Live in Jakarta'],
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'The legendary Japanese rock band is coming to Jakarta for a one-night show.',
                     'location' => 'Basket Hall GBK Senayan',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(18)->setTime(19, 0, 0),
                     'status' => 'published',
                 ],
@@ -99,11 +101,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'Marine Actions Expo (MAX) 2026'],
                 'data' => [
                     'category_id' => $categories['art-exhibition'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Exhibition showcasing marine life conservation efforts through digital art.',
                     'location' => 'Jakarta Convention Center',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(24),
                     'status' => 'published',
                 ],
@@ -115,11 +117,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'Raditya Dika - Cerita Cintaku Tour'],
                 'data' => [
                     'category_id' => $categories['comedy-show'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Stand up comedy special tour covering love and relationships.',
                     'location' => 'Balai Sarbini',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(40)->setTime(20, 0, 0),
                     'status' => 'published',
                 ],
@@ -132,11 +134,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'Pestapora 2026 Festival Pass'],
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Annual multi-genre music festival featuring local and international acts.',
                     'location' => 'Gambir Expo Kemayoran',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(60),
                     'status' => 'published',
                 ],
@@ -149,11 +151,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'KARD 2026 WORLD TOUR <DRIFT>'],
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'Co-ed K-Pop group KARD brings their DRIFT tour to Indonesia.',
                     'location' => 'The Kasablanka Hall',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(85)->setTime(18, 30, 0),
                     'status' => 'published',
                 ],
@@ -166,11 +168,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'Bandung Food & Culture Fest'],
                 'data' => [
                     'category_id' => $categories['food-festival'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'A weekend celebrating local cuisines, street food, and traditional performances.',
                     'location' => 'Kiara Artha Park',
-                    'city'     => 'Bandung',
-                    'format'   => 'onsite',
+                    'city' => 'Bandung',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(12),
                     'status' => 'published',
                 ],
@@ -182,11 +184,11 @@ class EventSeeder extends Seeder
                 'lookup' => ['title' => 'MLBB Championship Series - Finals'],
                 'data' => [
                     'category_id' => $categories['esports-tournament'] ?? null,
-                    'organizer_id' => $organizers[array_rand($organizers ?? [$fallbackOrganizer])],
+                    'organizer_id' => $organizerId,
                     'description' => 'The grand finals of the regional Mobile Legends bang bang tournament.',
                     'location' => 'Tennis Indoor Senayan',
-                    'city'     => 'Jakarta',
-                    'format'   => 'onsite',
+                    'city' => 'Jakarta',
+                    'format' => 'onsite',
                     'date' => $eventDateBase->copy()->addDays(20),
                     'status' => 'published',
                 ],
@@ -205,7 +207,7 @@ class EventSeeder extends Seeder
 
             $ticketSyncData = [];
             foreach ($eventConfig['tickets'] as $ticketName => $pivot) {
-                if (! isset($ticketTypes[$ticketName])) {
+                if (!isset($ticketTypes[$ticketName])) {
                     continue;
                 }
 

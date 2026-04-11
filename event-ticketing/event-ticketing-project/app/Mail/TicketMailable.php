@@ -3,12 +3,14 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\IssuedTicket;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TicketMailable extends Mailable
 {
@@ -16,7 +18,6 @@ class TicketMailable extends Mailable
 
     public $ticket;
     public $event;
-    public $qrCodeBase64;
 
     /**
      * Create a new message instance.
@@ -25,14 +26,6 @@ class TicketMailable extends Mailable
     {
         $this->ticket = $ticket;
         $this->event = $ticket->eventTicketType->event;
-        
-        // Generate QR code as SVG (more compatible as it doesn't require GD/Imagick for generation)
-        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
-            ->margin(1)
-            ->size(200)
-            ->generate($ticket->unique_code);
-            
-        $this->qrCodeBase64 = base64_encode($qrCode);
     }
 
     /**
@@ -56,12 +49,26 @@ class TicketMailable extends Mailable
     }
 
     /**
-     * Get the attachments for the message.
+     * Attach ticket as PDF file.
      *
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
     {
-        return [];
+        $svgContent = QrCode::size(160)->margin(1)->generate($this->ticket->unique_code);
+        $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($svgContent);
+
+        $pdf = Pdf::loadView('pdf.ticket', [
+            'ticket' => $this->ticket,
+            'event'  => $this->event,
+            'qrDataUri' => $qrDataUri,
+        ]);
+
+        $filename = 'ticket-' . $this->ticket->unique_code . '.pdf';
+
+        return [
+            Attachment::fromData(fn () => $pdf->output(), $filename)
+                ->withMime('application/pdf'),
+        ];
     }
 }

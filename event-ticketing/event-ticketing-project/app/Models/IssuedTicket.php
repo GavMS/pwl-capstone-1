@@ -13,6 +13,7 @@ class IssuedTicket extends Model
         'unique_code',
         'qr_image',
         'status',
+        'scanned_at',
         'attendee_name',
         'attendee_email',
         'attendee_phone',
@@ -20,6 +21,13 @@ class IssuedTicket extends Model
         'attendee_dob',
         'attendee_gender',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'scanned_at' => 'datetime',
+        ];
+    }
 
     public function eventTicketType()
     {
