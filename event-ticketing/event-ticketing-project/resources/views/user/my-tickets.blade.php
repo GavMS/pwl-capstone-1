@@ -124,7 +124,7 @@
                                 </div>
 
                                 <a href="{{ route('user.ticket.detail', $ticket->unique_code) }}" class="mt-auto block w-full text-center py-3 rounded-xl border-2 border-[#38b2ac] text-[#38b2ac] font-extrabold text-sm hover:bg-[#38b2ac] hover:text-white transition">
-                                    View Detail & Print
+                                    View Detail
                                 </a>
                             </div>
                         </div>

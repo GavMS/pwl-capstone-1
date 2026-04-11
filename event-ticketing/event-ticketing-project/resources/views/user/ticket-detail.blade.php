@@ -19,7 +19,7 @@
             @endphp
 
             {{-- E-Ticket Card --}}
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <div id="ticket-card" class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
                 {{-- Header Gradient --}}
                 <div
                     class="bg-gradient-to-br from-[#38b2ac] to-teal-700 p-8 text-white text-center relative overflow-hidden">
@@ -94,15 +94,16 @@
                     </div>
                 </div>
 
-                {{-- Print Button --}}
-                <div class="px-8 pb-8 no-print">
-                    <button onclick="window.print()"
+                {{-- Download PDF Button --}}
+                <div class="px-8 pb-8 no-print" id="download-btn-wrap">
+                    <button onclick="downloadPDF()"
+                        id="download-pdf-btn"
                         class="w-full py-3.5 rounded-xl bg-gray-900 hover:bg-gray-700 text-white font-extrabold text-sm transition flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Print / Save as PDF
+                        Download as PDF
                     </button>
                 </div>
             </div>
@@ -110,62 +111,49 @@
     </div>
 
     @push('scripts')
-        <style>
-            @media print {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script>
+            async function downloadPDF() {
+                const btn = document.getElementById('download-pdf-btn');
+                const btnWrap = document.getElementById('download-btn-wrap');
+                const backBtn = document.querySelector('.no-print:not(#download-btn-wrap)');
 
-                /* Sembunyikan elemen bawaan dari layot (seperti sidebar dan navbar mobile) */
-                aside,
-                .sidebar,
-                header,
-                .no-print {
-                    display: none !important;
-                }
+                // Sembunyikan tombol-tombol sebelum capture
+                btnWrap.style.display = 'none';
+                if (backBtn) backBtn.style.display = 'none';
+                btn.textContent = 'Generating PDF...';
 
-                /* Reset margin/padding container web dan paksa background putih */
-                body,
-                html,
-                .min-h-screen,
-                main,
-                .layout-wrapper {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: white !important;
-                    background-color: white !important;
-                }
+                try {
+                    const ticketEl = document.getElementById('ticket-card');
+                    const canvas = await html2canvas(ticketEl, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        useCORS: true,
+                        logging: false,
+                    });
 
-                .layout-wrapper {
-                    display: block !important;
-                }
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
 
-                .main-content {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    width: 100% !important;
-                    background: white !important;
-                }
+                    // Buat PDF sesuai ukuran gambar
+                    const pdfWidth = 210; // A4 width in mm
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    const pdf = new jsPDF({ unit: 'mm', format: [pdfWidth, pdfHeight], orientation: 'portrait' });
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-                /* Atur ulang ukuran kontainer agar di tengah pas diprint */
-                #print-area {
-                    max-width: 100% !important;
-                    width: 100% !important;
-                    margin: 0 !important;
-                    padding: 20px !important;
-                    background: white !important;
-                }
-
-                /* Hilangkan bayangan dan sisa-sisa overlay gelap */
-                * {
-                    box-shadow: none !important;
-                    text-shadow: none !important;
-                    filter: none !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                .shadow-xl {
-                    border: 1px solid #e5e7eb !important;
+                    const filename = 'ticket-{{ $ticket->unique_code }}.pdf';
+                    pdf.save(filename);
+                } catch (err) {
+                    console.error('PDF error:', err);
+                    alert('Gagal membuat PDF, coba lagi.');
+                } finally {
+                    // Tampilkan kembali elemen UI
+                    btnWrap.style.display = '';
+                    if (backBtn) backBtn.style.display = '';
+                    btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Download as PDF`;
                 }
             }
-        </style>
+        </script>
     @endpush
 </x-app-layout>
