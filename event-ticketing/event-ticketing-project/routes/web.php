@@ -96,6 +96,11 @@ Route::middleware(['auth', 'role:organizer'])->group(function () {
     
     // Sales & Payouts — Organizer
     Route::get('/organizer/sales', [\App\Http\Controllers\OrganizerController::class, 'sales'])->name('organizer.sales');
+    
+    // Scan Tiket — Organizer
+    Route::get('/organizer/scan', [\App\Http\Controllers\TicketScanController::class, 'index'])->name('organizer.scan');
+    Route::post('/organizer/scan', [\App\Http\Controllers\TicketScanController::class, 'scan'])->name('organizer.scan.process');
+    Route::get('/organizer/scan/history/{event}', [\App\Http\Controllers\TicketScanController::class, 'history'])->name('organizer.scan.history');
 });
 
 Route::middleware(['auth', 'role:user'])->group(function () {
