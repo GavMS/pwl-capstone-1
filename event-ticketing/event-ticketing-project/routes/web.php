@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/financials', [\App\Http\Controllers\AdminController::class, 'financials'])->name('admin.financials');
+    Route::get('/admin/financials/export/excel', [\App\Http\Controllers\AdminController::class, 'exportFinancialsExcel'])->name('admin.financials.export.excel');
+    Route::get('/admin/financials/export/pdf', [\App\Http\Controllers\AdminController::class, 'exportFinancialsPDF'])->name('admin.financials.export.pdf');
 
 
     // Event CRUD — Admin
@@ -96,6 +98,8 @@ Route::middleware(['auth', 'role:organizer'])->group(function () {
     
     // Sales & Payouts — Organizer
     Route::get('/organizer/sales', [\App\Http\Controllers\OrganizerController::class, 'sales'])->name('organizer.sales');
+    Route::get('/organizer/sales/export/excel', [\App\Http\Controllers\OrganizerController::class, 'exportSalesExcel'])->name('organizer.sales.export.excel');
+    Route::get('/organizer/sales/export/pdf', [\App\Http\Controllers\OrganizerController::class, 'exportSalesPDF'])->name('organizer.sales.export.pdf');
     
     // Scan Tiket — Organizer
     Route::get('/organizer/scan', [\App\Http\Controllers\TicketScanController::class, 'index'])->name('organizer.scan');

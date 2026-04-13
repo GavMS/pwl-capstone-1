@@ -35,6 +35,17 @@
             </div>
         </section>
 
+        <!-- Transaction Chart -->
+        <section class="event-section" style="padding-top: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+                <h3 class="lowercase" style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin: 0;">revenue overview.</h3>
+                <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em;">last 6 months</span>
+            </div>
+            <div style="background: white; border-radius: var(--radius-2xl); padding: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-border);">
+                <canvas id="orgRevenueChart" height="120"></canvas>
+            </div>
+        </section>
+
         <!-- Events List -->
         <section class="event-section">
             <div class="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4 mb-6">
@@ -80,4 +91,127 @@
             </div>
         </section>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const orgChartMonths  = @json($chartMonths);
+        const orgChartRevenue = @json($chartRevenue);
+        const orgChartTickets = @json($chartTickets);
+
+        const ctx2 = document.getElementById('orgRevenueChart').getContext('2d');
+
+        const gradientTeal = ctx2.createLinearGradient(0, 0, 0, 260);
+        gradientTeal.addColorStop(0, 'rgba(17, 94, 89, 0.15)');
+        gradientTeal.addColorStop(1, 'rgba(17, 94, 89, 0)');
+
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: orgChartMonths,
+                datasets: [
+                    {
+                        label: 'Revenue (Rp)',
+                        data: orgChartRevenue,
+                        borderColor: '#115e59',
+                        backgroundColor: gradientTeal,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#115e59',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Tickets Sold',
+                        data: orgChartTickets,
+                        borderColor: '#6ee7b7',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#6ee7b7',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#777777',
+                            font: { size: 11, weight: '700' },
+                            usePointStyle: true,
+                            pointStyleWidth: 8,
+                            boxHeight: 6
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#444444',
+                        bodyColor: '#777777',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 14,
+                        cornerRadius: 16,
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.yAxisID === 'y') {
+                                    return ' Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                                }
+                                return ' ' + context.parsed.y + ' tickets';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#999999', font: { size: 11, weight: '700' } },
+                        border: { display: false }
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: { color: '#f4f4f4' },
+                        ticks: {
+                            color: '#999999',
+                            font: { size: 11, weight: '700' },
+                            callback: function(value) {
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'K';
+                                return 'Rp ' + value;
+                            }
+                        },
+                        border: { display: false }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            color: '#6ee7b7',
+                            font: { size: 11, weight: '700' },
+                            callback: function(value) { return value + ' tkts'; }
+                        },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>
