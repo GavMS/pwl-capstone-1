@@ -2,7 +2,7 @@
     <div class="main-content">
         <!-- Header -->
         <header class="app-header">
-            <div class="header-container">
+            <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <h2 class="lowercase" style="font-size: 1.875rem; font-weight: 800; color: var(--text-dark); margin: 0;">
                         sales &amp; payouts.
@@ -10,6 +10,14 @@
                     <p class="lowercase" style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
                         track your ticket sales and revenue
                     </p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="{{ route('organizer.sales.export.excel') }}" style="display: inline-flex; items-center; padding: 0.6rem 1.25rem; background: #10b981; color: white; border-radius: 0.75rem; font-weight: 700; font-size: 0.8rem; text-transform: lowercase; text-decoration: none; box-shadow: var(--shadow-sm); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                        export excel
+                    </a>
+                    <a href="{{ route('organizer.sales.export.pdf') }}" style="display: inline-flex; items-center; padding: 0.6rem 1.25rem; background: #ef4444; color: white; border-radius: 0.75rem; font-weight: 700; font-size: 0.8rem; text-transform: lowercase; text-decoration: none; box-shadow: var(--shadow-sm); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                        export pdf
+                    </a>
                 </div>
             </div>
         </header>
@@ -28,6 +36,19 @@
                 <p class="text-xs font-bold uppercase tracking-widest" style="color: #16a34a; margin: 0;">across all your events.</p>
             </div>
         </section>
+
+        <!-- Revenue Per Event Chart -->
+        @if(count($salesData) > 0)
+        <section class="event-section" style="padding-top: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+                <h3 class="lowercase" style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin: 0;">revenue by event.</h3>
+                <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em;">all events</span>
+            </div>
+            <div style="background: white; border-radius: var(--radius-2xl); padding: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-border);">
+                <canvas id="salesEventChart" height="120"></canvas>
+            </div>
+        </section>
+        @endif
 
         <!-- Sales per Event -->
         <section class="event-section pt-8">
@@ -112,4 +133,110 @@
             </div>
         </section>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        @if(count($salesData) > 0)
+        const salesEventLabels  = @json(collect($salesData)->pluck('event.title')->map(fn($t) => strlen($t) > 18 ? substr($t, 0, 18).'…' : $t)->values());
+        const salesEventRevenue = @json(collect($salesData)->pluck('total_revenue')->values());
+        const salesTicketsSold  = @json(collect($salesData)->pluck('tickets_sold')->values());
+
+        const ctx3 = document.getElementById('salesEventChart').getContext('2d');
+
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: salesEventLabels,
+                datasets: [
+                    {
+                        label: 'Revenue (Rp)',
+                        data: salesEventRevenue,
+                        backgroundColor: '#115e59',
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Tickets Sold',
+                        data: salesTicketsSold,
+                        backgroundColor: '#6ee7b7',
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#777777',
+                            font: { size: 11, weight: '700' },
+                            usePointStyle: true,
+                            pointStyleWidth: 8,
+                            boxHeight: 6
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#444444',
+                        bodyColor: '#777777',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 14,
+                        cornerRadius: 16,
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.yAxisID === 'y') {
+                                    return ' Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                                }
+                                return ' ' + context.parsed.y + ' tickets';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#999999', font: { size: 11, weight: '700' } },
+                        border: { display: false }
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: { color: '#f4f4f4' },
+                        ticks: {
+                            color: '#999999',
+                            font: { size: 11, weight: '700' },
+                            callback: function(value) {
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'K';
+                                return 'Rp ' + value;
+                            }
+                        },
+                        border: { display: false }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            color: '#6ee7b7',
+                            font: { size: 11, weight: '700' },
+                            callback: function(value) { return value + ' tkts'; }
+                        },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+        @endif
+    </script>
+    @endpush
 </x-app-layout>
