@@ -73,7 +73,7 @@
                             {{-- Event Banner --}}
                             <div class="h-36 relative overflow-hidden bg-gray-200 flex-shrink-0">
                                 @if($event?->banner)
-                                    <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                    <img src="{{ $event->banner_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full bg-gradient-to-br from-teal-400 to-blue-500"></div>
                                 @endif

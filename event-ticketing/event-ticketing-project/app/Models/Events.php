@@ -48,6 +48,19 @@ class Events extends Model
         ];
     }
 
+    public function getBannerUrlAttribute(): ?string
+    {
+        if (empty($this->banner)) {
+            return null;
+        }
+
+        if (str_starts_with($this->banner, 'http://') || str_starts_with($this->banner, 'https://')) {
+            return $this->banner;
+        }
+
+        return asset('storage/' . $this->banner);
+    }
+
     // ─────────────────────────────────────────────
     // Helper Methods
     // ─────────────────────────────────────────────

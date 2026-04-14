@@ -64,7 +64,7 @@
                     <div class="event-card">
                         <div class="event-banner-container">
                             @if($event->banner)
-                                <img src="{{ asset('storage/' . $event->banner) }}" class="event-banner">
+                                <img src="{{ $event->banner_url }}" class="event-banner">
                             @else
                                 <div class="event-banner" style="display: flex; align-items: center; justify-content: center; color: #bbbbbb;">
                                     <svg style="width: 2rem; height: 2rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>

@@ -3,7 +3,7 @@
         {{-- Banner Section --}}
         <div class="w-full h-[40vh] md:h-[50vh] relative overflow-hidden bg-gray-900">
             @if($event->banner)
-                <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                     class="w-full h-full object-cover opacity-70">
             @else
                 <div class="w-full h-full bg-gradient-to-r from-teal-500 to-blue-600 opacity-80"></div>

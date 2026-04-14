@@ -185,7 +185,7 @@
                             @if($event->banner)
                                 <div id="current-banner-wrap"
                                     class="w-full h-32 rounded-2xl overflow-hidden mb-3 border border-gray-200 relative">
-                                    <img id="current-banner-img" src="{{ asset('storage/' . $event->banner) }}"
+                                    <img id="current-banner-img" src="{{ $event->banner_url }}"
                                         class="w-full h-full object-cover">
                                     <button type="button" onclick="confirmDeleteBanner()" title="remove current banner"
                                         class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/60 text-white rounded-full hover:bg-red-600 transition text-xs font-bold">

@@ -138,7 +138,7 @@
                     <a href="{{ route('events.show', $heroEvent->id_event) }}"
                         class="block w-full h-[400px] rounded-[2rem] overflow-hidden relative shadow-sm group">
                         @if($heroEvent->banner)
-                            <img src="{{ asset('storage/' . $heroEvent->banner) }}" alt="{{ $heroEvent->title }}"
+                            <img src="{{ $heroEvent->banner_url }}" alt="{{ $heroEvent->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                         @else
                             <div
@@ -260,7 +260,7 @@
                                 <div
                                     class="w-full h-40 bg-gray-200 rounded-[1.5rem] overflow-hidden relative mb-4 flex-shrink-0">
                                     @if($event->banner)
-                                        <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                                        <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                     @else
                                         <div
@@ -363,7 +363,7 @@
                                 <!-- Event Banner -->
                                 <div class="w-20 h-20 bg-gray-200 rounded-[1.2rem] overflow-hidden flex-shrink-0">
                                     @if($event->banner)
-                                        <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                                        <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                     @else
                                         <div class="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>

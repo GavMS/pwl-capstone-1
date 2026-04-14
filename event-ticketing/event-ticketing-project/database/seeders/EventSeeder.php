@@ -31,6 +31,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['developer-conference'] ?? null,
                     'organizer_id' => $sourrossieId,
+                    'banner' => 'https://visi.news/wp-content/uploads/2025/11/Screenshot-2025-11-24-190050.webp',
                     'description' => 'Developer conference featuring practical talks, coding demos, and networking.',
                     'location' => 'Universitas Kristen Maranatha',
                     'city' => 'Bandung',
@@ -49,6 +50,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['tech-workshop'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800',
                     'description' => 'Workshop session covering AI fundamentals with guided mini projects.',
                     'location' => 'Institut Teknologi Bandung (ITB)',
                     'city' => 'Bandung',
@@ -67,6 +69,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['startup-networking'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800',
                     'description' => 'Networking event to connect students, founders, and industry mentors.',
                     'location' => 'Bandung Creative Hub',
                     'city' => 'Bandung',
@@ -85,6 +88,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYfHqDZVPkzEBS3q78YPbkBsqwgNoLxBRhFA&s',
                     'description' => 'The legendary Japanese rock band is coming to Jakarta for a one-night show.',
                     'location' => 'Basket Hall GBK Senayan',
                     'city' => 'Jakarta',
@@ -102,6 +106,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['art-exhibition'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?q=80&w=800',
                     'description' => 'Exhibition showcasing marine life conservation efforts through digital art.',
                     'location' => 'Jakarta Convention Center',
                     'city' => 'Jakarta',
@@ -118,6 +123,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['comedy-show'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://i.ytimg.com/vi/Z3kpDgsA9xs/maxresdefault.jpg',
                     'description' => 'Stand up comedy special tour covering love and relationships.',
                     'location' => 'Balai Sarbini',
                     'city' => 'Jakarta',
@@ -135,6 +141,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800',
                     'description' => 'Annual multi-genre music festival featuring local and international acts.',
                     'location' => 'Gambir Expo Kemayoran',
                     'city' => 'Jakarta',
@@ -152,6 +159,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['music-concert'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=800',
                     'description' => 'Co-ed K-Pop group KARD brings their DRIFT tour to Indonesia.',
                     'location' => 'The Kasablanka Hall',
                     'city' => 'Jakarta',
@@ -169,6 +177,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['food-festival'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=800',
                     'description' => 'A weekend celebrating local cuisines, street food, and traditional performances.',
                     'location' => 'Kiara Artha Park',
                     'city' => 'Bandung',
@@ -185,6 +194,7 @@ class EventSeeder extends Seeder
                 'data' => [
                     'category_id' => $categories['esports-tournament'] ?? null,
                     'organizer_id' => $organizerId,
+                    'banner' => 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800',
                     'description' => 'The grand finals of the regional Mobile Legends bang bang tournament.',
                     'location' => 'Tennis Indoor Senayan',
                     'city' => 'Jakarta',
