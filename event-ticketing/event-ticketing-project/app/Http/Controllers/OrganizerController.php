@@ -37,4 +37,61 @@ class OrganizerController extends Controller
 
         return view('organizer.dashboard', compact('user', 'stats', 'events', 'status'));
     }
+
+    // Halaman Sales & Payouts untuk Organizer
+    public function sales(Request $request)
+    {
+        $user = auth()->user();
+
+        // Ambil semua event milik organizer ini
+        $events = Events::where('organizer_id', $user->id)
+            ->with(['ticketTypes' => function ($query) {
+                 // Tidak bisa load issuedTickets langsung dari pivot without explicit relationship query, 
+                 // We will get them through the event
+            }])->get();
+
+        // Karena IssuedTicket terikat ke eventTicketType, kita fetch manual untuk mempermudah perhitungan
+        $salesData = [];
+        $totalRevenue = 0;
+        $totalTicketsSold = 0;
+
+        foreach ($events as $event) {
+            $ticketTypes = \App\Models\EventTicketType::where('event_id', $event->id_event)
+                                        ->with('ticketType', 'issuedTickets')
+                                        ->get();
+            
+            $eventTotalRevenue = 0;
+            $eventTicketsSold = 0;
+            $ticketDetails = [];
+
+            foreach ($ticketTypes as $ett) {
+                $sold = $ett->issuedTickets->count();
+                $revenue = $sold * $ett->price;
+                
+                $eventTicketsSold += $sold;
+                $eventTotalRevenue += $revenue;
+
+                $ticketDetails[] = [
+                    'name' => $ett->ticketType->name,
+                    'price' => $ett->price,
+                    'sold' => $sold,
+                    'revenue' => $revenue,
+                    'stock' => $ett->stock, // Sisa stock
+                    'initial_capacity' => $ett->stock + $sold
+                ];
+            }
+
+            $totalRevenue += $eventTotalRevenue;
+            $totalTicketsSold += $eventTicketsSold;
+
+            $salesData[] = [
+                'event' => $event,
+                'total_revenue' => $eventTotalRevenue,
+                'tickets_sold' => $eventTicketsSold,
+                'ticket_details' => $ticketDetails
+            ];
+        }
+
+        return view('organizer.sales', compact('user', 'salesData', 'totalRevenue', 'totalTicketsSold'));
+    }
 }

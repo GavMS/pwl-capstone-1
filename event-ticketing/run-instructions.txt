@@ -2,14 +2,22 @@
 
 Buka dua terminal terpisah:
 
-0. START XAMPP
+1. START XAMPP
+   php artisan migrate:fresh --seed
 
-1. TERMINAL UI (Frontend/Vite):
+2. START NGROK:
+   ngrok http 8000
+
+3. TERMINAL UI (Frontend/Vite):
    npm run dev
 
-2. TERMINAL SERVER (Backend/Laravel):
+4. TERMINAL SERVER (Backend/Laravel):
    // refresh cache
-   php 
+   php artisan config:clear
+   php artisan cache:clear
+   php artisan route:clear
+   php artisan view:clear
+   
    php artisan serve
 
 Pastikan keduanya tetap berjalan saat Anda sedang coding.

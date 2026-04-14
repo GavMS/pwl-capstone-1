@@ -79,6 +79,14 @@
                                     <td style="padding: 1.5rem 2rem;">
                                         <div style="font-size: 13px; font-weight: 700; color: var(--text-dark);">{{ $event->date->format('d M Y, H:i') }}</div>
                                         <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">{{ $event->location }}</div>
+                                        <div style="display: flex; gap: 0.4rem; margin-top: 6px; flex-wrap: wrap;">
+                                            <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 50px; background: #eff6ff; color: #1d4ed8;">
+                                                {{ $event->city }}
+                                            </span>
+                                            <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 50px; {{ $event->format === 'online' ? 'background: #f0fdf4; color: #15803d;' : 'background: #fff7ed; color: #c2410c;' }}">
+                                                {{ $event->format }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td style="padding: 1.5rem 2rem;">
                                         @php

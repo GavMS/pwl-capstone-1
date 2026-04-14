@@ -87,7 +87,13 @@ CREATE TABLE `e-tickets` (
   `event_id` int(10) UNSIGNED NOT NULL,
   `ticket_types_id` int(10) UNSIGNED NOT NULL,
   `accounts_id` int(10) UNSIGNED NOT NULL,
-  `transaction_id` int(10) UNSIGNED NOT NULL
+  `transaction_id` int(10) UNSIGNED NOT NULL,
+  `attendee_name` varchar(255) DEFAULT NULL,
+  `attendee_email` varchar(255) DEFAULT NULL,
+  `attendee_phone` varchar(255) DEFAULT NULL,
+  `attendee_id_card` varchar(255) DEFAULT NULL,
+  `attendee_dob` date DEFAULT NULL,
+  `attendee_gender` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
@@ -270,12 +276,16 @@ CREATE TABLE `ticket_types` (
 
 CREATE TABLE `transaction` (
   `id` int(10) UNSIGNED NOT NULL,
-  `status` enum('') NOT NULL,
+  `status` enum('pending','success','failed','expired') NOT NULL DEFAULT 'pending',
   `total_price` decimal(12,2) NOT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `payment_method` varchar(255) NOT NULL,
   `deadline_payment` datetime DEFAULT NULL,
-  `accounts_id` int(10) UNSIGNED NOT NULL
+  `accounts_id` int(10) UNSIGNED NOT NULL,
+  `order_id` varchar(255) NOT NULL,
+  `snap_token` varchar(255) DEFAULT NULL,
+  `ticket_payload` longtext DEFAULT NULL,
+  `customer_details` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------

@@ -37,7 +37,7 @@
 
         <!-- Events List -->
         <section class="event-section">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+            <div class="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4 mb-6">
                 <h3 class="lowercase" style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin: 0;">
                     {{ $status === 'active' ? 'my active events' : ($status === 'draft' ? 'my drafts' : 'past events') }}
                 </h3>
