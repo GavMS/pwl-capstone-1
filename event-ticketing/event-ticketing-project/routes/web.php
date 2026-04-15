@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (!Auth::check()) {
-        return redirect()->route('login');
+        return redirect()->route('user.explore');
     }
 
     $role = Auth::user()->role;
@@ -21,15 +21,17 @@ Route::get('/', function () {
     return redirect()->route('user.dashboard');
 })->name('home');
 
+// Public browse pages (guest-friendly)
+Route::get('/explore', [\App\Http\Controllers\UserController::class, 'explore'])->name('user.explore');
+Route::get('/explore/creators', [\App\Http\Controllers\UserController::class, 'exploreCreators'])->name('user.explore.creators');
+Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile')->where('id', '[0-9]+');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Browse Events & Organizer Profile
-    Route::get('/explore', [\App\Http\Controllers\UserController::class, 'explore'])->name('user.explore');
-    Route::get('/explore/creators', [\App\Http\Controllers\UserController::class, 'exploreCreators'])->name('user.explore.creators');
-    Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile')->where('id', '[0-9]+');
+    // Event detail + purchase flow (login required)
     Route::get('/event/{id}', [EventController::class, 'show'])->name('events.show');
 
     // Queue & Waiting List
