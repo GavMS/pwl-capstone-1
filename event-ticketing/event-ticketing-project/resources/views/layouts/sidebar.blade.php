@@ -11,7 +11,7 @@
     <div class="nav-container">
         <p class="menu-label">menu</p>
 
-        @if (Auth::user()->role === 'admin')
+        @if (Auth::check() && Auth::user()->role === 'admin')
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -37,7 +37,7 @@
                 financials
             </a>
 
-        @elseif (Auth::user()->role === 'organizer')
+        @elseif (Auth::check() && Auth::user()->role === 'organizer')
             <a href="{{ route('organizer.dashboard') }}" class="nav-link {{ request()->routeIs('organizer.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -55,7 +55,7 @@
                 scan tickets
             </a>
 
-        @else
+        @elseif (Auth::check())
             <a href="{{ route('user.dashboard') }}" class="nav-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 dashboard
@@ -72,25 +72,52 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 wishlist
             </a>
+        @else
+            <a href="{{ route('user.explore') }}" class="nav-link {{ request()->routeIs('user.explore') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                browse events
+            </a>
+            <a href="{{ route('user.explore.creators') }}" class="nav-link {{ request()->routeIs('user.explore.creators') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                creators
+            </a>
+            <a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h8a2 2 0 012 2v1"></path></svg>
+                sign in
+            </a>
+            <a href="{{ route('register') }}" class="nav-link {{ request()->routeIs('register') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v6m3-3h-6M5 20h6a2 2 0 002-2v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1a2 2 0 002 2zm7-13a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                create account
+            </a>
         @endif
     </div>
 
     <div class="profile-box">
-        <a href="{{ route('profile.edit') }}" class="profile-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-            <div class="avatar-circle">
-                {{ substr(Auth::user()->name, 0, 1) }}
-            </div>
-            <div style="overflow: hidden;">
-                <p style="margin: 0; font-weight: 700; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ Auth::user()->name }}</p>
-                <p style="margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">{{ Auth::user()->role }}</p>
-            </div>
-        </a>
+        @auth
+            <a href="{{ route('profile.edit') }}" class="profile-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                <div class="avatar-circle">
+                    {{ substr(Auth::user()->name, 0, 1) }}
+                </div>
+                <div style="overflow: hidden;">
+                    <p style="margin: 0; font-weight: 700; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ Auth::user()->name }}</p>
+                    <p style="margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">{{ Auth::user()->role }}</p>
+                </div>
+            </a>
 
-        <form id="logout-form" method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="button" onclick="confirmLogout(event)" class="btn-signout">
-                sign out
-            </button>
-        </form>
+            <form id="logout-form" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="button" onclick="confirmLogout(event)" class="btn-signout">
+                    sign out
+                </button>
+            </form>
+        @else
+            <a href="{{ route('login') }}" class="profile-link {{ request()->routeIs('login') ? 'active' : '' }}">
+                <div class="avatar-circle">G</div>
+                <div style="overflow: hidden;">
+                    <p style="margin: 0; font-weight: 700; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest Mode</p>
+                    <p style="margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">sign in to buy tickets</p>
+                </div>
+            </a>
+        @endauth
     </div>
 </aside>
