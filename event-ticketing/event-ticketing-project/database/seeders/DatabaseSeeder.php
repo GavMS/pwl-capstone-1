@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             EventCategorySeeder::class,
             TicketTypeSeeder::class,
             EventSeeder::class,
+            TransactionSeeder::class,
         ]);
     }
 }
