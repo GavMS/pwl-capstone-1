@@ -64,9 +64,11 @@
                                         <div class="space-y-2">
                                             <label class="text-xs font-black text-gray-400 uppercase tracking-widest">Email Address <span class="text-red-500">*</span></label>
                                             <input type="email" name="attendees[{{ $attendeeIndex }}][email]" required
+                                                data-validate="email"
                                                 value="{{ $attendeeIndex === 0 ? auth()->user()->email : '' }}"
                                                 placeholder="example@mail.com"
-                                                class="w-full bg-gray-50 border-gray-200 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
+                                                class="attendee-input w-full bg-gray-50 border-gray-200 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
+                                            <p class="validation-error text-red-500 text-xs font-bold mt-1 hidden"></p>
                                         </div>
 
                                         {{-- Phone Number --}}
@@ -75,23 +77,30 @@
                                             <div class="relative">
                                                 <span class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">+62</span>
                                                 <input type="text" name="attendees[{{ $attendeeIndex }}][phone]" required
+                                                    data-validate="phone"
+                                                    inputmode="numeric"
                                                     placeholder="812345678"
-                                                    class="w-full bg-gray-50 border-gray-200 rounded-2xl pl-14 pr-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
+                                                    class="attendee-input w-full bg-gray-50 border-gray-200 rounded-2xl pl-14 pr-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
                                             </div>
+                                            <p class="validation-error text-red-500 text-xs font-bold mt-1 hidden"></p>
                                         </div>
 
                                         {{-- ID Number --}}
                                         <div class="space-y-2">
                                             <label class="text-xs font-black text-gray-400 uppercase tracking-widest">ID Number (KTP/Passport) <span class="text-red-500">*</span></label>
                                             <input type="text" name="attendees[{{ $attendeeIndex }}][id_card]" required
+                                                data-validate="id_number"
+                                                inputmode="numeric"
                                                 placeholder="32000xxxxxxxx"
-                                                class="w-full bg-gray-50 border-gray-200 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
+                                                class="attendee-input w-full bg-gray-50 border-gray-200 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold placeholder:text-gray-300">
+                                            <p class="validation-error text-red-500 text-xs font-bold mt-1 hidden"></p>
                                         </div>
 
                                         {{-- Date of Birth --}}
                                         <div class="space-y-2">
                                             <label class="text-xs font-black text-gray-400 uppercase tracking-widest">Date of Birth <span class="text-red-500">*</span></label>
                                             <input type="date" name="attendees[{{ $attendeeIndex }}][dob]" required
+                                                max="{{ now()->format('Y-m-d') }}"
                                                 class="w-full bg-gray-50 border-gray-200 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition text-sm font-bold">
                                         </div>
 
@@ -243,8 +252,89 @@
             let submitted = false;
 
             // Jangan rilis jika user sedang memproses pembayaran (submit form)
-            document.getElementById('main-checkout-form').addEventListener('submit', () => {
+            const checkoutForm = document.getElementById('main-checkout-form');
+            checkoutForm.addEventListener('submit', function(e) {
+                // --- Attendee Validation ---
+                let isValid = true;
+                let firstError = null;
+
+                // Reset all previous errors
+                document.querySelectorAll('.validation-error').forEach(el => {
+                    el.textContent = '';
+                    el.classList.add('hidden');
+                });
+                document.querySelectorAll('.attendee-input').forEach(el => {
+                    el.classList.remove('border-red-400', 'bg-red-50/50');
+                });
+
+                // Validate each field
+                document.querySelectorAll('.attendee-input').forEach(input => {
+                    const type = input.dataset.validate;
+                    const value = input.value.trim();
+                    const errorEl = input.closest('.space-y-2').querySelector('.validation-error');
+
+                    if (type === 'phone') {
+                        if (value && !/^\d+$/.test(value)) {
+                            showFieldError(input, errorEl, 'Phone number harus diisi dengan angka saja.');
+                            isValid = false;
+                            if (!firstError) firstError = input;
+                        } else if (value && value.length < 8) {
+                            showFieldError(input, errorEl, 'Phone number minimal 8 digit.');
+                            isValid = false;
+                            if (!firstError) firstError = input;
+                        }
+                    }
+
+                    if (type === 'id_number') {
+                        if (value && !/^[a-zA-Z0-9]+$/.test(value)) {
+                            showFieldError(input, errorEl, 'ID Number harus diisi dengan angka atau huruf saja (tanpa spasi/simbol).');
+                            isValid = false;
+                            if (!firstError) firstError = input;
+                        } else if (value && value.length < 6) {
+                            showFieldError(input, errorEl, 'ID Number minimal 6 karakter.');
+                            isValid = false;
+                            if (!firstError) firstError = input;
+                        }
+                    }
+
+                    if (type === 'email') {
+                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (value && !emailPattern.test(value)) {
+                            showFieldError(input, errorEl, 'Format email tidak valid. Gunakan format: example@mail.com');
+                            isValid = false;
+                            if (!firstError) firstError = input;
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    firstError.focus();
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
+
                 submitted = true;
+            });
+
+            function showFieldError(input, errorEl, message) {
+                input.classList.add('border-red-400', 'bg-red-50/50');
+                if (errorEl) {
+                    errorEl.textContent = message;
+                    errorEl.classList.remove('hidden');
+                }
+            }
+
+            // Real-time: clear error when user starts correcting
+            document.querySelectorAll('.attendee-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('border-red-400', 'bg-red-50/50');
+                    const errorEl = this.closest('.space-y-2').querySelector('.validation-error');
+                    if (errorEl) {
+                        errorEl.textContent = '';
+                        errorEl.classList.add('hidden');
+                    }
+                });
             });
 
             function performRelease() {
