@@ -100,4 +100,12 @@ class Events extends Model
                     ->withPivot('id', 'price', 'stock')
                     ->withTimestamps();
     }
+
+    /**
+     * Get the vouchers specific to this event.
+     */
+    public function vouchers()
+    {
+        return $this->hasMany(Voucher::class, 'event_id', 'id_event');
+    }
 }

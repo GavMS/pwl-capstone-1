@@ -73,6 +73,7 @@ class CheckoutController extends Controller
             'attendees.*.phone' => 'required|string|max:20',
             'attendees.*.id_card' => 'required|string|max:50',
             'agreement' => 'accepted',
+            'voucher_code' => 'nullable|string'
         ]);
 
         $eventId = $request->input('event_id');
@@ -118,6 +119,30 @@ class CheckoutController extends Controller
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
         $deadline = now()->addMinutes(15);
 
+        // ====================================================
+        // VOUCHER APPLICATION
+        // ====================================================
+        $appliedVoucherId = null;
+        $discountAmount = 0;
+        
+        if ($request->filled('voucher_code')) {
+            $voucher = \App\Models\Voucher::where('code', strtoupper($request->voucher_code))->first();
+            if ($voucher) {
+                [$isValid, $message] = $voucher->isValidForOrder($eventId, $totalPrice);
+                
+                $hasUsed = \App\Models\VoucherUsage::where('voucher_id', $voucher->id)
+                    ->where('user_id', $user->id)
+                    ->whereNotNull('transaction_id')
+                    ->exists();
+
+                if ($isValid && !$hasUsed) {
+                    $discountAmount = $voucher->calculateDiscount($totalPrice);
+                    $totalPrice = max(0, $totalPrice - $discountAmount);
+                    $appliedVoucherId = $voucher->id;
+                }
+            }
+        }
+
         $transaction = Transaction::create([
             'accounts_id' => $user->id,
             'order_id' => $orderId,
@@ -126,6 +151,8 @@ class CheckoutController extends Controller
             'ticket_payload' => $ticketPayload,
             'customer_details' => $request->input('attendees'),
             'deadline_payment' => $deadline,
+            'voucher_id' => $appliedVoucherId,
+            'discount_amount' => $discountAmount,
         ]);
 
         // ====================================================
@@ -301,6 +328,15 @@ class CheckoutController extends Controller
                                  $attendeeIndex++;
                             }
                         }
+                    }
+
+                    // Record Voucher Usage if a voucher was applied
+                    if ($transaction->voucher_id) {
+                        \App\Models\VoucherUsage::firstOrCreate(
+                            ['voucher_id' => $transaction->voucher_id, 'user_id' => $transaction->accounts_id],
+                            ['transaction_id' => $transaction->id, 'discount_amount' => $transaction->discount_amount]
+                        );
+                        \App\Models\Voucher::where('id', $transaction->voucher_id)->increment('used_count');
                     }
 
                     // Release queue session after successful mock payment
