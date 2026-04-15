@@ -23,6 +23,21 @@ class CheckoutController extends Controller
         $eventId = $request->input('event_id');
         $ticketsInput = $request->input('tickets');
 
+        // ====================================================
+        // QUEUE GUARD: Only users with a valid ShoppingSession
+        // (i.e. those who have been granted a queue slot)
+        // are allowed to proceed to the order details page.
+        // ====================================================
+        $session = \App\Models\ShoppingSession::where('user_id', Auth::id())
+            ->where('event_id', $eventId)
+            ->first();
+
+        if (!$session || $session->isExpired()) {
+            // No valid session = not granted queue access. Redirect back to event.
+            return redirect()->route('events.show', $eventId)
+                ->with('error', 'Access denied. Please join the queue first.');
+        }
+
         $event = \App\Models\Events::findOrFail($eventId);
         $selectedTickets = [];
         $totalPrice = 0;
@@ -30,7 +45,7 @@ class CheckoutController extends Controller
         foreach ($ticketsInput as $ticketData) {
             $ett = EventTicketType::with('ticketType')->findOrFail($ticketData['id']);
             if ($ett->stock < $ticketData['quantity']) {
-                return back()->withErrors(['checkout' => "Stok tiket '{$ett->ticketType->name}' tidak mencukupi."]);
+                return back()->withErrors(['checkout' => "Ticket stock for '{$ett->ticketType->name}' is insufficient."]);
             }
 
             $totalPrice += ($ett->price * $ticketData['quantity']);
@@ -60,6 +75,22 @@ class CheckoutController extends Controller
             'agreement' => 'accepted',
         ]);
 
+        $eventId = $request->input('event_id');
+
+        // ====================================================
+        // QUEUE GUARD: Double-check session is still valid
+        // when submitting attendee data. This prevents a race
+        // condition where session expired mid-form.
+        // ====================================================
+        $queueSession = \App\Models\ShoppingSession::where('user_id', $user->id)
+            ->where('event_id', $eventId)
+            ->first();
+
+        if (!$queueSession || $queueSession->isExpired()) {
+            return redirect()->route('events.show', $eventId)
+                ->with('error', 'Your queue session has expired. Please restart the process.');
+        }
+
         $tickets = json_decode($request->input('tickets'), true);
         $totalPrice = 0;
         $ticketPayload = [];
@@ -70,7 +101,7 @@ class CheckoutController extends Controller
 
             $ett = EventTicketType::with('ticketType')->findOrFail($ettId);
             if ($ett->stock < $qty) {
-                return back()->withErrors(['checkout' => "Maaf, stok tiket '{$ett->ticketType->name}' sudah habis."]);
+                return back()->withErrors(['checkout' => "Sorry, the ticket stock for '{$ett->ticketType->name}' has run out."]);
             }
 
             $totalPrice += ($ett->price * $qty);
@@ -96,6 +127,15 @@ class CheckoutController extends Controller
             'customer_details' => $request->input('attendees'),
             'deadline_payment' => $deadline,
         ]);
+
+        // ====================================================
+        // QUEUE FIX: User has successfully locked their stock in
+        // a Transaction. Delete the shopping session immediately
+        // to prevent double-counting of reserved stock!
+        // ====================================================
+        if ($queueSession) {
+            $queueSession->delete();
+        }
 
         $this->initMidtrans();
 
@@ -125,7 +165,7 @@ class CheckoutController extends Controller
             $transaction->update(['snap_token' => $snapToken]);
             return redirect()->route('checkout.payment', $transaction->order_id);
         } catch (\Exception $e) {
-            return back()->withErrors(['checkout' => 'Midtrans Error: ' . $e->getMessage()]);
+            return redirect()->route('user.my-tickets')->with('error', 'Midtrans Error: ' . $e->getMessage() . '. You can retry payment here.');
         }
     }
 
@@ -258,19 +298,31 @@ class CheckoutController extends Controller
                                 }
                             }
 
-                            $attendeeIndex++;
+                                 $attendeeIndex++;
+                            }
                         }
                     }
-                }
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->withErrors(['checkout' => 'Mock payment failed: ' . $e->getMessage()]);
-            }
-        }
 
-        return redirect()->route('user.my-tickets')->with('success', 'Mock Payment Success!');
-    }
+                    // Release queue session after successful mock payment
+                    if (!empty($payloadArray)) {
+                        $payload0 = $payloadArray[0];
+                        $ett0 = EventTicketType::find($payload0['event_ticket_type_id']);
+                        if ($ett0 && $ett0->event) {
+                            \App\Models\ShoppingSession::where('user_id', Auth::id())
+                                ->where('event_id', $ett0->event->id_event)
+                                ->delete();
+                        }
+                    }
+
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return back()->withErrors(['checkout' => 'Mock payment failed: ' . $e->getMessage()]);
+                }
+            }
+
+            return redirect()->route('user.my-tickets')->with('success', 'Mock Payment Success!');
+        }
 
     private function initMidtrans()
     {
