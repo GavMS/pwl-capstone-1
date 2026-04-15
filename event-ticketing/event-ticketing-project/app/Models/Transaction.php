@@ -25,4 +25,9 @@ class Transaction extends Model
     {
         return $this->hasMany(IssuedTicket::class);
     }
+
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
+    }
 }

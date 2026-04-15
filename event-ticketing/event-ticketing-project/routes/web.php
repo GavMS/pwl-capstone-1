@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
     });
 
+    Route::post('/voucher/apply', [\App\Http\Controllers\VoucherController::class, 'apply'])->name('voucher.apply');
+
     Route::get('/checkout/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
     Route::post('/checkout/{order_id}/recreate', [\App\Http\Controllers\CheckoutController::class, 'recreate'])->name('checkout.recreate');
     Route::post('/checkout/{order_id}/mock', [\App\Http\Controllers\CheckoutController::class, 'mockSuccess'])->name('checkout.mock');
@@ -99,6 +101,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         'update' => 'admin.ticket-types.update',
         'destroy' => 'admin.ticket-types.destroy',
     ]);
+
+    // Vouchers
+    Route::resource('/admin/vouchers', \App\Http\Controllers\Admin\VoucherController::class)->names([
+        'index' => 'admin.vouchers.index',
+        'create' => 'admin.vouchers.create',
+        'store' => 'admin.vouchers.store',
+        'edit' => 'admin.vouchers.edit',
+        'update' => 'admin.vouchers.update',
+        'destroy' => 'admin.vouchers.destroy',
+    ]);
+    Route::patch('/admin/vouchers/{voucher}/toggle', [\App\Http\Controllers\Admin\VoucherController::class, 'toggleActive'])->name('admin.vouchers.toggle');
 
 });
 

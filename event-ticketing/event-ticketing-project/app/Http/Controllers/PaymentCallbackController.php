@@ -104,6 +104,15 @@ class PaymentCallbackController extends Controller
                         Log::error("Out of stock during callback for order {$orderId}");
                     }
                 }
+
+                if ($transaction->voucher_id) {
+                    \App\Models\VoucherUsage::firstOrCreate(
+                        ['voucher_id' => $transaction->voucher_id, 'user_id' => $transaction->accounts_id],
+                        ['transaction_id' => $transaction->id, 'discount_amount' => $transaction->discount_amount]
+                    );
+                    \App\Models\Voucher::where('id', $transaction->voucher_id)->increment('used_count');
+                }
+
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();

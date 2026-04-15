@@ -34,8 +34,9 @@
 
                     <form action="{{ route('checkout.process') }}" method="POST" id="main-checkout-form" class="space-y-6">
                         @csrf
-                        <input type="hidden" name="event_id" value="{{ $event->id_event }}">
+                        <input type="hidden" name="event_id" id="event_id" value="{{ $event->id_event }}">
                         <input type="hidden" name="tickets" value="{{ json_encode($selectedTickets) }}">
+                        <input type="hidden" name="voucher_code" id="hidden_voucher_code" value="">
 
                         {{-- Attendee Info Sections --}}
                         @php $attendeeIndex = 0; @endphp
@@ -133,6 +134,18 @@
                         </div>
                     </div>
 
+                    {{-- Voucher Section --}}
+                    <div class="bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 p-6">
+                        <h3 class="text-lg font-black text-gray-900 mb-4 lowercase tracking-tight">apply voucher</h3>
+                        <div class="flex gap-3 relative">
+                            <input type="text" id="voucher_input" placeholder="e.g. DISCOUNT20" class="flex-1 bg-gray-50 border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold placeholder:text-gray-300 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition uppercase">
+                            <button type="button" id="btn-apply-voucher" class="px-6 py-3 bg-[#444444] text-white rounded-2xl font-bold lowercase hover:bg-black transition shadow-sm">
+                                apply
+                            </button>
+                        </div>
+                        <div id="voucher-message" class="hidden mt-3 p-3 rounded-xl text-xs font-bold flex items-start gap-2"></div>
+                    </div>
+
                     {{-- Order Summary --}}
                     <div class="bg-white rounded-3xl shadow-xl shadow-teal-500/5 border border-teal-100 p-6">
                         <h3 class="text-lg font-black text-gray-900 mb-6 border-b border-dashed border-gray-100 pb-4 lowercase tracking-tight">order summary</h3>
@@ -152,7 +165,11 @@
                         <div class="space-y-3 pt-6 border-t border-gray-100">
                             <div class="flex justify-between text-sm font-bold text-gray-500 lowercase tracking-tight">
                                 <span>subtotal</span>
-                                <span>Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
+                                <span id="summary-subtotal" data-value="{{ $totalPrice }}">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
+                            </div>
+                            <div id="discount-row" class="flex justify-between text-sm font-bold text-teal-600 lowercase tracking-tight hidden">
+                                <span>discount <span id="discount-percent-badge" class="bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded-md text-[10px] ml-1"></span></span>
+                                <span id="summary-discount">- Rp 0</span>
                             </div>
                             <div class="flex justify-between text-sm font-bold text-gray-500 lowercase tracking-tight">
                                 <span>tax (0%)</span>
@@ -160,7 +177,7 @@
                             </div>
                             <div class="flex justify-between items-center pt-2">
                                 <span class="text-base font-black text-gray-900 lowercase tracking-tight">total amount</span>
-                                <span class="text-2xl font-black text-teal-600 tracking-tighter">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
+                                <span class="text-2xl font-black text-teal-600 tracking-tighter" id="summary-total">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                             </div>
                         </div>
 
@@ -238,6 +255,72 @@
 
             // Picu pelepasan jika user navigasi keluar secara eksplisit (tombol Back/Close Tab)
             window.addEventListener('pagehide', performRelease);
+
+            // --- VOUCHER AJAX SYSTEM ---
+            const btnApplyVoucher = document.getElementById('btn-apply-voucher');
+            const voucherInput = document.getElementById('voucher_input');
+            const messageEl = document.getElementById('voucher-message');
+            const hiddenVoucher = document.getElementById('hidden_voucher_code');
+            const originalTotal = parseFloat(document.getElementById('summary-subtotal').getAttribute('data-value'));
+            const eventId = document.getElementById('event_id').value;
+
+btnApplyVoucher.addEventListener('click', function() {
+                const code = voucherInput.value.trim();
+                
+                if (!code) {
+                    messageEl.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span>Please enter a voucher code.</span>';
+                    messageEl.className = 'mt-3 p-3 rounded-xl text-xs font-bold flex items-start gap-2 bg-red-50 text-red-600 block';
+                    return;
+                }
+
+                btnApplyVoucher.disabled = true;
+                btnApplyVoucher.innerHTML = '<svg class="animate-spin w-5 h-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+
+                fetch("{{ route('voucher.apply') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        event_id: eventId,
+                        total_price: originalTotal
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnApplyVoucher.disabled = false;
+                    btnApplyVoucher.innerHTML = 'apply';
+
+                    if (data.valid) {
+                        messageEl.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>' + data.message + '</span>';
+                        messageEl.className = 'mt-3 p-3 rounded-xl text-xs font-bold flex items-start gap-2 bg-teal-50 text-teal-700 block';
+                        
+                        hiddenVoucher.value = code;
+                        voucherInput.disabled = true;
+                        btnApplyVoucher.style.display = 'none'; // hide apply button
+
+                        document.getElementById('discount-row').classList.remove('hidden');
+                        document.getElementById('discount-percent-badge').textContent = data.discount_percent + '%';
+                        document.getElementById('summary-discount').textContent = '- Rp ' + new Intl.NumberFormat('id-ID').format(data.discount_amount);
+                        document.getElementById('summary-total').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(data.final_price);
+
+                    } else {
+                        messageEl.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> <span>' + (data.message || 'Invalid voucher.') + '</span>';
+                        messageEl.className = 'mt-3 p-3 rounded-xl text-xs font-bold flex items-start gap-2 bg-red-50 text-red-600 block';
+                        hiddenVoucher.value = '';
+                    }
+                })
+                .catch(err => {
+                    btnApplyVoucher.disabled = false;
+                    btnApplyVoucher.innerHTML = 'apply';
+                    messageEl.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span>Failed to verify voucher. Check your connection.</span>';
+                    messageEl.className = 'mt-3 p-3 rounded-xl text-xs font-bold flex items-start gap-2 bg-red-50 text-red-600 block';
+                    console.error(err);
+                });
+            });
         });
     </script>
     @endpush
