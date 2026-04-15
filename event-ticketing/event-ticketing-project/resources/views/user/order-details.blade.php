@@ -3,10 +3,13 @@
         {{-- Progress Header --}}
         <div class="bg-white border-b border-gray-200 py-4 sticky top-0 z-50 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-                <a href="{{ url()->previous() }}" class="flex items-center gap-2 text-gray-500 hover:text-teal-600 transition font-bold text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    Back
-                </a>
+                <form action="{{ route('queue.release', $event->id_event) }}" method="POST" id="cancel-form">
+                    @csrf
+                    <button type="submit" class="flex items-center gap-2 text-gray-500 hover:text-red-600 transition font-bold text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Batalkan Sesi
+                    </button>
+                </form>
                 <div class="flex items-center gap-4">
                     <span class="text-[10px] uppercase tracking-widest font-black text-gray-400">Step 2 of 3</span>
                     <div class="h-1.5 w-32 bg-gray-100 rounded-full overflow-hidden">
@@ -204,7 +207,6 @@
             const timerEl = document.getElementById('order-timer');
 
             const timer = setInterval(() => {
-                const mins = Math.floor(timeLeft / 600); // Typo corrected: 60
                 const actualMins = Math.floor(timeLeft / 60);
                 const secs = timeLeft % 60;
                 
@@ -217,6 +219,25 @@
                 }
                 timeLeft--;
             }, 1000);
+
+            // --- AUTO RELEASE SYSTEM (Zero-Ghosting) ---
+            const releaseUrl = "{{ route('queue.release', $event->id_event) }}";
+            const csrfToken = "{{ csrf_token() }}";
+            let submitted = false;
+
+            // Jangan rilis jika user sedang memproses pembayaran (submit form)
+            document.getElementById('main-checkout-form').addEventListener('submit', () => {
+                submitted = true;
+            });
+
+            function performRelease() {
+                if (submitted) return;
+                const blob = new Blob([JSON.stringify({ _token: csrfToken })], { type: 'application/json' });
+                navigator.sendBeacon(releaseUrl, blob);
+            }
+
+            // Picu pelepasan jika user navigasi keluar secara eksplisit (tombol Back/Close Tab)
+            window.addEventListener('pagehide', performRelease);
         });
     </script>
     @endpush

@@ -6,7 +6,9 @@ use App\Models\Events;
 use App\Models\EventCategories;
 use App\Models\Accounts;
 use App\Models\TicketType;
+use App\Models\ShoppingSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -54,7 +56,43 @@ class EventController extends Controller
             }
         }
 
-        return view('events.show', compact('event'));
+        // Pre-load ShoppingSession wishlist for users with a valid queue session.
+        // This allows the checkout page to auto-submit without relying on sessionStorage.
+        $queueSessionWishlist = [];
+        if (auth()->check()) {
+            $activeSession = ShoppingSession::where('user_id', auth()->id())
+                ->where('event_id', $event->id_event)
+                ->where('expires_at', '>', now())
+                ->first();
+
+            // ====================================================
+            // MANUAL DROP LOGIC: If the user navigated manually to this page 
+            // (e.g. pressing Back from Checkout without finishing), 
+            // they do NOT have 'queue_granted' session token.
+            // In this case, we instantly drop their ShoppingSession 
+            // so the ticket goes back to the Waiting List immediately!
+            // ====================================================
+            if ($activeSession && !session()->has('queue_granted')) {
+                $activeSession->delete();
+                $activeSession = null;
+            }
+
+            if ($activeSession && !empty($activeSession->wishlist)) {
+                // Normalize to a sequential JS-safe array [{id, name, price, qty}]
+                $queueSessionWishlist = array_values(
+                    array_map(function ($item) {
+                        return [
+                            'id'    => (int)($item['id'] ?? 0),
+                            'name'  => (string)($item['name'] ?? 'Ticket'),
+                            'price' => (int)($item['price'] ?? 0),
+                            'qty'   => (int)($item['qty'] ?? 1),
+                        ];
+                    }, (array) $activeSession->wishlist)
+                );
+            }
+        }
+
+        return view('events.show', compact('event', 'queueSessionWishlist'));
     }
 
     /**
