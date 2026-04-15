@@ -64,8 +64,18 @@ class RegisteredUserController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        // Send OTP email
-        Mail::to($request->email)->send(new OtpVerificationMail($otp, $request->name));
+        // Send OTP email — if delivery fails, the email is likely invalid
+        try {
+            Mail::to($request->email)->send(new OtpVerificationMail($otp, $request->name));
+        } catch (\Exception $e) {
+            // Clean up OTP record and session, then redirect back with error
+            OtpVerification::where('email', $request->email)->delete();
+            $request->session()->forget('register_pending');
+
+            return back()->withInput()->withErrors([
+                'email' => 'We could not send a verification code to this email address. Please make sure the email is valid and try again.',
+            ]);
+        }
 
         return redirect()->route('register.otp')->with('otp_email', $request->email);
     }

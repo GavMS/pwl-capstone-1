@@ -17,10 +17,19 @@
                 </div>
 
                 <h1 class="text-center text-2xl font-bold text-[#444444] mb-2">Check your email</h1>
-                <p class="text-center text-[#888888] text-sm mb-8">
+                <p class="text-center text-[#888888] text-sm mb-4">
                     We sent a 6-digit verification code to<br>
                     <span class="font-semibold text-[#555555]">{{ $email }}</span>
                 </p>
+
+                {{-- Info: email might not exist --}}
+                <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm mb-5 flex gap-2 items-start">
+                    <span class="mt-0.5 text-amber-500 flex-shrink-0">⚠️</span>
+                    <span class="text-amber-700">
+                        If you don't receive the code within a few minutes, the email address you entered may not exist or may not be reachable.
+                        Please <a href="{{ route('register') }}" class="font-semibold underline">go back</a> and use a valid email address.
+                    </span>
+                </div>
 
                 {{-- Success: Resent --}}
                 @if (session('resent'))
