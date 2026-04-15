@@ -58,7 +58,7 @@
             @if(session('error'))
                 Swal.fire({
                     icon: 'error',
-                    title: 'ups.',
+                    title: 'oops.',
                     text: {!! json_encode(session('error')) !!},
                     confirmButtonColor: '#ef4444',
                     customClass: {

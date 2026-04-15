@@ -32,9 +32,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile')->where('id', '[0-9]+');
     Route::get('/event/{id}', [EventController::class, 'show'])->name('events.show');
 
-    // Checkout
-    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
-    Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    // Queue & Waiting List
+    Route::get('/queue/{event_id}/enter', [\App\Http\Controllers\QueueController::class, 'enter'])->name('queue.enter');
+    Route::get('/queue/{event_id}/waiting-room', [\App\Http\Controllers\QueueController::class, 'waitingRoom'])->name('queue.waiting-room');
+    Route::get('/api/queue/{event_id}/status', [\App\Http\Controllers\QueueController::class, 'status'])->name('queue.status');
+    Route::post('/api/queue/{event_id}/release', [\App\Http\Controllers\QueueController::class, 'release'])->name('queue.release');
+    Route::post('/api/queue/{event_id}/skip', [\App\Http\Controllers\QueueController::class, 'skipCategory'])->name('queue.skip');
+
+    // Checkout (Protected by Queue)
+    Route::middleware('check.queue')->group(function () {
+        Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
+        Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    });
+
     Route::get('/checkout/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
     Route::post('/checkout/{order_id}/recreate', [\App\Http\Controllers\CheckoutController::class, 'recreate'])->name('checkout.recreate');
     Route::post('/checkout/{order_id}/mock', [\App\Http\Controllers\CheckoutController::class, 'mockSuccess'])->name('checkout.mock');

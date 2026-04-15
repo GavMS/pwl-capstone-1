@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\EventTicketType;
 use App\Models\IssuedTicket;
+use App\Models\ShoppingSession;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -108,6 +109,25 @@ class PaymentCallbackController extends Controller
                 DB::rollBack();
                 Log::error("Ticket generation failed: " . $e->getMessage());
                 return response(['message' => 'Internal error'], 500);
+            }
+        }
+
+        if (in_array($newStatus, ['success', 'expired'])) {
+            $eventId = null;
+            if (!empty($payloadArray ?? $transaction->ticket_payload)) {
+                $payload0 = ($payloadArray ?? $transaction->ticket_payload)[0] ?? null;
+                if ($payload0) {
+                    $ett = \App\Models\EventTicketType::find($payload0['event_ticket_type_id'] ?? null);
+                    if ($ett && $ett->event) {
+                        $eventId = $ett->event->id_event;
+                    }
+                }
+            }
+
+            if ($eventId) {
+                ShoppingSession::where('user_id', $transaction->accounts_id)
+                    ->where('event_id', $eventId)
+                    ->delete();
             }
         }
 
