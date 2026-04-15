@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'logo.') }}</title>
+        <title>{{ config('app.name', 'Flowtix') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@
                 <!-- Mobile Topbar -->
                 <header class="lg:hidden bg-white border-b border-gray-200 py-4 px-6 flex justify-between items-center sticky top-0 z-20">
                     <a href="/" class="text-2xl font-extrabold text-[#444444] tracking-tight lowercase">
-                        logo.
+                        Flowtix
                     </a>
                     <button @click="sidebarOpen = true" class="p-2 -mr-2 text-[#555555] rounded-xl hover:bg-gray-100 transition" aria-label="Open Sidebar">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>logo.</title>
+    <title>Flowtix</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -18,7 +18,7 @@
 
             <div class="mb-6">
                 <h1 class="text-4xl font-extrabold text-[#555555] tracking-tight lowercase">
-                    logo.
+                    Flowtix
                 </h1>
             </div>
 

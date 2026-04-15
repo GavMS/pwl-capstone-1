@@ -42,7 +42,7 @@ class EventSeeder extends Seeder
                 'tickets' => [
                     'Normal' => ['price' => 150000, 'stock' => 250],
                     'VIP' => ['price' => 400000, 'stock' => 60],
-                    'Student Pass' => ['price' => 90000, 'stock' => 200],
+                    'Student Pass' => ['price' => 90000, 'stock' => 1],
                 ],
             ],
             [

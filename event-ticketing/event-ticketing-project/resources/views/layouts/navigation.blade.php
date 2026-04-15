@@ -9,7 +9,7 @@
                         elseif (Auth::user()->role === 'organizer') $dashboardRoute = 'organizer.dashboard';
                     @endphp
                     <a href="{{ route($dashboardRoute) }}" class="text-2xl font-bold text-[#555555] tracking-tight hover:text-black transition">
-                        logo.
+                        Flowtix
                     </a>
                 </div>
 
