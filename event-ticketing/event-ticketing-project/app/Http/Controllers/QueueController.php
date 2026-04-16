@@ -359,37 +359,44 @@ class QueueController extends Controller
      */
     private function promoteQueue($event_id): void
     {
-        $waiting = WaitingList::where('event_id', $event_id)
-            ->where('status', 'waiting')
-            ->orderBy('position')
-            ->get();
+        DB::transaction(function () use ($event_id) {
+            $waiting = WaitingList::where('event_id', $event_id)
+                ->where('status', 'waiting')
+                ->orderBy('position')
+                ->lockForUpdate()
+                ->get();
 
-        foreach ($waiting as $entry) {
-            $canPromote = true;
+            foreach ($waiting as $entry) {
+                $canPromote = true;
 
-            foreach ($entry->wishlist ?? [] as $item) {
-                $ett = EventTicketType::find($item['id']);
-                if (!$ett) continue;
+                foreach ($entry->wishlist ?? [] as $item) {
+                    $ett = EventTicketType::where('id', $item['id'])->lockForUpdate()->first();
+                    if (!$ett) continue;
 
-                $activeHolders = $ett->getReservedStock($entry->user_id);
-                $requestedQty  = (int)($item['qty'] ?? 1);
+                    $activeHolders = $ett->getReservedStock($entry->user_id);
+                    $requestedQty  = (int)($item['qty'] ?? 1);
 
-                if (($activeHolders + $requestedQty) > $ett->stock) {
-                    $canPromote = false;
+                    if (($activeHolders + $requestedQty) > $ett->stock) {
+                        $canPromote = false;
+                        break;
+                    }
+                }
+
+                if ($canPromote) {
+                    Log::info("Promoting User {$entry->user_id} to checkout for event {$event_id}");
+
+                    ShoppingSession::updateOrCreate(
+                        ['user_id' => $entry->user_id, 'event_id' => $event_id],
+                        ['wishlist' => $entry->wishlist, 'expires_at' => now()->addMinutes(15)]
+                    );
+                    $entry->delete();
+                } else {
+                    // Enforce strict queue priority: if the user in front cannot afford to enter (e.g. stock not enough),
+                    // the sequence halts so that the queue maintains its FIFO priority. 
                     break;
                 }
             }
-
-            if ($canPromote) {
-                Log::info("Promoting User {$entry->user_id} to checkout for event {$event_id}");
-
-                ShoppingSession::updateOrCreate(
-                    ['user_id' => $entry->user_id, 'event_id' => $event_id],
-                    ['wishlist' => $entry->wishlist, 'expires_at' => now()->addMinutes(15)]
-                );
-                $entry->delete();
-            }
-        }
+        });
 
         $this->reorderQueue($event_id);
     }
@@ -399,13 +406,15 @@ class QueueController extends Controller
      */
     private function reorderQueue($event_id): void
     {
-        $waiting = WaitingList::where('event_id', $event_id)
-            ->where('status', 'waiting')
-            ->orderBy('position')
-            ->get();
+        DB::transaction(function () use ($event_id) {
+            $waiting = WaitingList::where('event_id', $event_id)
+                ->where('status', 'waiting')
+                ->orderBy('position')
+                ->get();
 
-        foreach ($waiting as $index => $entry) {
-            $entry->update(['position' => $index + 1]);
-        }
+            foreach ($waiting as $index => $entry) {
+                $entry->update(['position' => $index + 1]);
+            }
+        });
     }
 }
