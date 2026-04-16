@@ -53,19 +53,16 @@ class EventTicketType extends Model
         $totalReserved = 0;
 
         // 1. Count from active ShoppingSessions (users browsing checkout)
-        $sessionsQuery = ShoppingSession::where('event_id', $this->event_id)
-            ->where(function ($q) {
-                $q->whereJsonContains('wishlist', ['id' => (int)$this->id])
-                  ->orWhereJsonContains('wishlist', ['id' => (string)$this->id]);
-            });
-
+        $sessionsQuery = ShoppingSession::where('event_id', $this->event_id);
+        
         if ($excludeUserId) {
             $sessionsQuery->where('user_id', '!=', $excludeUserId);
         }
 
         foreach ($sessionsQuery->get(['wishlist']) as $session) {
             foreach ($session->wishlist ?? [] as $item) {
-                if ($item['id'] == $this->id) {
+                // Ensure robust comparison handling both strings and integers
+                if (isset($item['id']) && $item['id'] == $this->id) {
                     $totalReserved += (int)($item['qty'] ?? 1);
                 }
             }
@@ -73,11 +70,7 @@ class EventTicketType extends Model
 
         // 2. Count from pending Transactions (users who haven't paid yet)
         $transactionsQuery = Transaction::where('status', 'pending')
-            ->where('deadline_payment', '>', now())
-            ->where(function ($q) {
-                $q->whereJsonContains('ticket_payload', ['event_ticket_type_id' => (int)$this->id])
-                  ->orWhereJsonContains('ticket_payload', ['event_ticket_type_id' => (string)$this->id]);
-            });
+            ->where('deadline_payment', '>', now());
 
         if ($excludeUserId) {
             $transactionsQuery->where('accounts_id', '!=', $excludeUserId);
@@ -85,7 +78,7 @@ class EventTicketType extends Model
 
         foreach ($transactionsQuery->get(['ticket_payload']) as $tx) {
             foreach ($tx->ticket_payload ?? [] as $item) {
-                if ($item['event_ticket_type_id'] == $this->id) {
+                if (isset($item['event_ticket_type_id']) && $item['event_ticket_type_id'] == $this->id) {
                     $totalReserved += (int)($item['quantity'] ?? 1);
                 }
             }
