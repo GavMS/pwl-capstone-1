@@ -43,9 +43,9 @@ class VoucherSeeder extends Seeder
                 'valid_until' => now()->addMonths(2),
             ],
             [
-                'code' => 'STUDENTPASSFREE',
-                'description' => 'Student Pass gratis (potongan 100%).',
-                'discount_percent' => 100,
+                'code' => 'STUDENTDISCOUNT',
+                'description' => 'Diskon 90% khusus event DevFest Bandung 2026.',
+                'discount_percent' => 90,
                 'event_id' => $devFestEventId,
                 'min_purchase' => 0,
                 'max_discount' => null,

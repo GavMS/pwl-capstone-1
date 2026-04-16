@@ -4,27 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\EventCategories;
-use App\Models\Accounts;
-use App\Models\TicketType;
 
+/**
+ * Events Model
+ *
+ * Represents a ticketed event with category, organizer, and ticket types.
+ * Supports statuses: draft, published, cancelled, completed.
+ *
+ * Used by: EventController, UserController, OrganizerController, AdminController.
+ */
 class Events extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     */
-    protected $table = 'event';
-
-    /**
-     * The primary key for the table.
-     */
+    protected $table      = 'event';
     protected $primaryKey = 'id_event';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'category_id',
         'organizer_id',
@@ -38,9 +33,6 @@ class Events extends Model
         'status',
     ];
 
-    /**
-     * Cast attributes to proper types.
-     */
     protected function casts(): array
     {
         return [
@@ -48,6 +40,11 @@ class Events extends Model
         ];
     }
 
+    // ─── Accessors ───────────────────────────────────────
+
+    /**
+     * Get the full URL for the banner image (handles both local and external URLs).
+     */
     public function getBannerUrlAttribute(): ?string
     {
         if (empty($this->banner)) {
@@ -61,9 +58,7 @@ class Events extends Model
         return asset('storage/' . $this->banner);
     }
 
-    // ─────────────────────────────────────────────
-    // Helper Methods
-    // ─────────────────────────────────────────────
+    // ─── Status Helpers ──────────────────────────────────
 
     public function isPublished(): bool
     {
@@ -75,35 +70,29 @@ class Events extends Model
         return $this->status === 'cancelled';
     }
 
-    /**
-     * Get the category that owns the event.
-     */
+    // ─── Relationships ───────────────────────────────────
+
+    /** Event category (e.g. Music, Festival, Workshop) */
     public function category()
     {
         return $this->belongsTo(EventCategories::class, 'category_id', 'id_category');
     }
 
-    /**
-     * Get the organizer that manages the event.
-     */
+    /** The organizer managing this event */
     public function organizer()
     {
         return $this->belongsTo(Accounts::class, 'organizer_id', 'id');
     }
 
-    /**
-     * Get the ticket types for this event.
-     */
+    /** Ticket types with per-event price and stock (many-to-many pivot) */
     public function ticketTypes()
     {
         return $this->belongsToMany(TicketType::class, 'event_ticket_types', 'event_id', 'ticket_type_id')
-                    ->withPivot('id', 'price', 'stock')
-                    ->withTimestamps();
+            ->withPivot('id', 'price', 'stock')
+            ->withTimestamps();
     }
 
-    /**
-     * Get the vouchers specific to this event.
-     */
+    /** Vouchers scoped to this event */
     public function vouchers()
     {
         return $this->hasMany(Voucher::class, 'event_id', 'id_event');

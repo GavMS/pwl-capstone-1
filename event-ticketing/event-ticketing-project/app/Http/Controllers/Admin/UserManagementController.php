@@ -205,7 +205,7 @@ class UserManagementController extends Controller
         }
 
         // Safe to delete — clean up waiting_lists first (non-critical data)
-        DB::table('waiting_lists')->where('accounts_id', $user->id)->delete();
+        DB::table('waiting_lists')->where('user_id', $user->id)->delete();
 
         // Force-logout the user being deleted
         DB::table('sessions')->where('user_id', $user->id)->delete();

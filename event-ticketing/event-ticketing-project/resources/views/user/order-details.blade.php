@@ -146,9 +146,9 @@
                     {{-- Voucher Section --}}
                     <div class="bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 p-6">
                         <h3 class="text-lg font-black text-gray-900 mb-4 lowercase tracking-tight">apply voucher</h3>
-                        <div class="flex gap-3 relative">
-                            <input type="text" id="voucher_input" placeholder="e.g. DISCOUNT20" class="flex-1 bg-gray-50 border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold placeholder:text-gray-300 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition uppercase">
-                            <button type="button" id="btn-apply-voucher" class="px-6 py-3 bg-[#444444] text-white rounded-2xl font-bold lowercase hover:bg-black transition shadow-sm">
+                        <div class="flex items-stretch gap-3 relative">
+                            <input type="text" id="voucher_input" placeholder="e.g. DISCOUNT20" class="flex-1 w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold placeholder:text-gray-300 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition uppercase">
+                            <button type="button" id="btn-apply-voucher" class="px-6 flex items-center justify-center border border-transparent bg-[#444444] text-white rounded-2xl font-bold lowercase hover:bg-black transition shadow-sm whitespace-nowrap">
                                 apply
                             </button>
                         </div>

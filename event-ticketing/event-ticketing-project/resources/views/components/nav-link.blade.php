@@ -1,3 +1,4 @@
+{{-- Nav Link — Used in: layouts/navigation.blade.php (desktop top nav) --}}
 @props(['active'])
 
 @php

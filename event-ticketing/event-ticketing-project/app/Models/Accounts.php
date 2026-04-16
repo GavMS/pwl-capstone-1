@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Accounts Model (User)
+ *
+ * The authentication model for all users. Supports three roles: admin, organizer, user.
+ * Extends Authenticatable for Laravel's built-in auth system.
+ *
+ * Used by: Auth controllers, RoleMiddleware, EventController, UserController, and more.
+ */
 class Accounts extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\AccountFactory> */
@@ -16,11 +24,6 @@ class Accounts extends Authenticatable
         return \Database\Factories\AccountFactory::new();
     }
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'username',
@@ -31,61 +34,44 @@ class Accounts extends Authenticatable
         'email_verified_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Helper method — cek apakah user adalah admin
-     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
+        ];
+    }
+
+    // ─── Role Helpers ────────────────────────────────────
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    /**
-     * Helper method — cek apakah user adalah organizer
-     */
     public function isOrganizer(): bool
     {
         return $this->role === 'organizer';
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    // ─── Relationships ───────────────────────────────────
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
-     */
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
-    }
-
-    /**
-     * Relasi ke Events
-     */
+    /** Events managed by this account (organizer role) */
     public function events()
     {
         return $this->hasMany(Events::class, 'organizer_id', 'id');
+    }
+
+    // ─── Notifications ───────────────────────────────────
+
+    /** Use custom reset password email template */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
     }
 }

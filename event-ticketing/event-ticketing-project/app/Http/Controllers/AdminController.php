@@ -3,17 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Accounts;
 use App\Models\Events;
-use Illuminate\Support\Facades\DB;
+use App\Models\EventTicketType;
+use App\Exports\AdminFinancialsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
+/**
+ * AdminController
+ *
+ * Dashboard & financial reporting for the Admin role.
+ * Used by: admin.dashboard, admin.financials, and export routes.
+ */
 class AdminController extends Controller
 {
-    // Halaman dashboard admin
+    /**
+     * Admin dashboard — platform-wide statistics and monthly revenue chart.
+     */
     public function dashboard()
     {
         $user = auth()->user();
-        
+
         $stats = [
             'total_users'   => Accounts::count(),
             'total_events'  => Events::count(),
@@ -23,72 +35,118 @@ class AdminController extends Controller
         $new_users     = Accounts::latest()->take(5)->get();
         $recent_events = Events::with('category', 'organizer')->latest()->take(5)->get();
 
-        // Chart: monthly transaction revenue for last 6 months
-        $chartMonths = [];
-        $chartRevenue = [];
+        // Revenue chart data: last 6 months
+        [$chartMonths, $chartRevenue] = $this->buildMonthlyRevenueChart();
+
+        return view('admin.dashboard', compact(
+            'user', 'stats', 'new_users', 'recent_events', 'chartMonths', 'chartRevenue'
+        ));
+    }
+
+    /**
+     * Financial report page — per-event breakdown with platform fee calculation.
+     */
+    public function financials(Request $request)
+    {
+        $data = $this->getFinancialData();
+        return view('admin.financials', $data);
+    }
+
+    /**
+     * Export financial report as Excel file.
+     */
+    public function exportFinancialsExcel()
+    {
+        $data = $this->getFinancialData();
+        return Excel::download(
+            new AdminFinancialsExport($data['financialData']),
+            'admin_financials.xlsx'
+        );
+    }
+
+    /**
+     * Export financial report as PDF file.
+     */
+    public function exportFinancialsPDF()
+    {
+        $data = $this->getFinancialData();
+        $pdf  = Pdf::loadView('pdf.admin_financials', $data);
+        return $pdf->download('admin_financials.pdf');
+    }
+
+    // ─── Private Helpers ─────────────────────────────────
+
+    /**
+     * Build monthly revenue chart data for the last 6 months.
+     *
+     * @return array [months[], revenue[]]
+     */
+    private function buildMonthlyRevenueChart(): array
+    {
+        $months  = [];
+        $revenue = [];
+
         for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $chartMonths[] = $month->format('M Y');
-            $revenue = DB::table('transaction')
+            $month    = now()->subMonths($i);
+            $months[] = $month->format('M Y');
+
+            $revenue[] = (float) DB::table('transaction')
                 ->where('status', 'success')
                 ->whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->sum('total_price');
-            $chartRevenue[] = (float) $revenue;
         }
 
-        return view('admin.dashboard', compact('user', 'stats', 'new_users', 'recent_events', 'chartMonths', 'chartRevenue'));
+        return [$months, $revenue];
     }
 
-    private function getFinancialData()
+    /**
+     * Aggregate financial data across all events (used by view, Excel, and PDF exports).
+     * Calculates per-event revenue, platform fee (5%), and organizer payout (95%).
+     */
+    private function getFinancialData(): array
     {
-        $events = \App\Models\Events::with('organizer')->get();
-        
-        $totalRevenue = 0;
+        $events = Events::with('organizer')->get();
+
+        $totalRevenue     = 0;
         $totalTicketsSold = 0;
-        $platformFee = 0; // Ex: admin takes 5%
-        $financialData = [];
+        $financialData    = [];
 
         foreach ($events as $event) {
-            $ticketTypes = \App\Models\EventTicketType::where('event_id', $event->id_event)
-                                        ->with('ticketType', 'issuedTickets')
-                                        ->get();
-            
-            $eventTotalRevenue = 0;
+            $ticketTypes = EventTicketType::where('event_id', $event->id_event)
+                ->with('ticketType', 'issuedTickets')
+                ->get();
+
+            $eventRevenue     = 0;
             $eventTicketsSold = 0;
 
             foreach ($ticketTypes as $ett) {
-                $sold = $ett->issuedTickets->count();
-                $revenue = $sold * $ett->price;
-                
+                $sold          = $ett->issuedTickets->count();
                 $eventTicketsSold += $sold;
-                $eventTotalRevenue += $revenue;
+                $eventRevenue     += $sold * $ett->price;
             }
 
-            $totalRevenue += $eventTotalRevenue;
+            $totalRevenue     += $eventRevenue;
             $totalTicketsSold += $eventTicketsSold;
 
+            // Only include events that have at least one sale
             if ($eventTicketsSold > 0) {
-                $ticketDetails = [];
-                foreach ($ticketTypes as $ett) {
-                    $sold = $ett->issuedTickets->count();
-                    $ticketDetails[] = [
-                        'name'             => $ett->ticketType->name ?? 'Unknown',
-                        'price'            => $ett->price,
-                        'sold'             => $sold,
-                        'revenue'          => $sold * $ett->price,
-                        'stock'            => $ett->stock,
-                        'initial_capacity' => $ett->stock + $sold,
-                    ];
-                }
+                $ticketDetails = $ticketTypes->map(fn ($ett) => [
+                    'name'             => $ett->ticketType->name ?? 'Unknown',
+                    'price'            => $ett->price,
+                    'sold'             => $ett->issuedTickets->count(),
+                    'revenue'          => $ett->issuedTickets->count() * $ett->price,
+                    'stock'            => $ett->stock,
+                    'initial_capacity' => $ett->stock + $ett->issuedTickets->count(),
+                ])->toArray();
 
                 $financialData[] = [
                     'event'            => $event,
-                    'organizer'        => $event->organizer->name,
-                    'total_revenue'    => $eventTotalRevenue,
+                    'organizer'        => $event->organizer->name ?? '-',
+                    'total_revenue'    => $eventRevenue,
                     'tickets_sold'     => $eventTicketsSold,
-                    'platform_fee'     => $eventTotalRevenue * 0.05,
-                    'organizer_payout' => $eventTotalRevenue * 0.95,
+                    'platform_fee'     => $eventRevenue * 0.05,
+                    'organizer_payout' => $eventRevenue * 0.95,
                     'ticket_details'   => $ticketDetails,
                 ];
             }
@@ -97,24 +155,5 @@ class AdminController extends Controller
         $platformFee = $totalRevenue * 0.05;
 
         return compact('totalRevenue', 'totalTicketsSold', 'platformFee', 'financialData');
-    }
-
-    public function financials(Request $request)
-    {
-        $data = $this->getFinancialData();
-        return view('admin.financials', $data);
-    }
-
-    public function exportFinancialsExcel()
-    {
-        $data = $this->getFinancialData();
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AdminFinancialsExport($data['financialData']), 'admin_financials.xlsx');
-    }
-
-    public function exportFinancialsPDF()
-    {
-        $data = $this->getFinancialData();
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.admin_financials', $data);
-        return $pdf->download('admin_financials.pdf');
     }
 }

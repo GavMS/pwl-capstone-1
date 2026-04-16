@@ -5,157 +5,129 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Events;
+use App\Models\EventTicketType;
 use App\Models\ShoppingSession;
 use App\Models\WaitingList;
 
+/**
+ * QueueController
+ *
+ * Manages the ticket‐purchasing queue system:
+ *   - enter()        → Attempt to get a checkout slot or join waiting list
+ *   - waitingRoom()  → Show waiting room UI while user waits
+ *   - status()       → AJAX poll: check queue position / promotion
+ *   - release()      → Voluntarily release a checkout slot
+ *   - skipCategory() → Remove a sold-out ticket type from wishlist
+ *
+ * Used by: queue.* routes.
+ */
 class QueueController extends Controller
 {
+    /**
+     * Enter the queue for an event.
+     * If stock is available, grants an immediate ShoppingSession.
+     * Otherwise, places the user in the WaitingList.
+     */
     public function enter(Request $request, $event_id)
     {
-        $user = Auth::user();
+        $user  = Auth::user();
         $event = Events::findOrFail($event_id);
-        
-        // --- INPUT NORMALIZATION ---
-        $rawCart = $request->input('wishlist') ?: $request->input('cart_data');
-        $cartData = [];
-        if (is_string($rawCart)) {
-            $cartData = json_decode($rawCart, true) ?: [];
-        } elseif (is_array($rawCart)) {
-            $cartData = $rawCart;
-        }
-        
-        // Force Indexed Array
-        $cartData = array_values($cartData);
+
+        // Normalise cart data from various input formats
+        $cartData = $this->normaliseCartInput($request);
 
         if (empty($cartData)) {
-            return redirect()->route('events.show', $event_id)->with('error', 'Please select a ticket first.');
+            return redirect()->route('events.show', $event_id)
+                ->with('error', 'Please select a ticket first.');
         }
 
         $this->cleanupExpired($event_id);
 
+        // Check for existing session — re-validate against current stock
         $existingSession = ShoppingSession::where('user_id', $user->id)
             ->where('event_id', $event_id)
             ->first();
 
-        // If user has an existing session, we must RE-VALIDATE it against current stock.
-        // We cannot blindly trust the old session — another user may have taken
-        // the last slot since this session was created.
         if ($existingSession && !$existingSession->isExpired()) {
-            $sessionIsStillValid = true;
-            $sessionWishlist = $existingSession->wishlist ?? [];
-
-            foreach ($sessionWishlist as $item) {
-                $ticketTypeId = $item['id'];
-                $ett = \App\Models\EventTicketType::find($ticketTypeId);
-                if (!$ett) continue;
-
-                // Count OTHER users holding this ticket (not counting self)
-                $otherHolders = $ett->getReservedStock($user->id);
-                $requestedQty = (int)($item['qty'] ?? 1);
-
-                // If others already hold all slots, this user's session is stale/invalid
-                if (($otherHolders + $requestedQty) > $ett->stock) {
-                    $sessionIsStillValid = false;
-                    break;
-                }
-            }
-
-            if ($sessionIsStillValid) {
-                // Session is genuinely valid — let them through
+            if ($this->isSessionStillValid($existingSession, $user->id)) {
                 return redirect()->route('events.show', $event_id)->with('queue_granted', true);
-            } else {
-                // Session is stale — revoke it and fall through to queue logic
-                $existingSession->delete();
-                $existingSession = null;
             }
-        } elseif ($existingSession && $existingSession->isExpired()) {
-            // Expired session — clean it up
+            // Session is stale — revoke and fall through
             $existingSession->delete();
-            $existingSession = null;
+        } elseif ($existingSession) {
+            $existingSession->delete();
         }
 
         $existingWait = WaitingList::where('user_id', $user->id)
             ->where('event_id', $event_id)
             ->first();
 
+        // Attempt to reserve stock atomically
         $granted = DB::transaction(function () use ($user, $event_id, $existingWait, $cartData) {
-            $isBlocked = false;
-
             foreach ($cartData as $item) {
-                $ticketTypeId = $item['id'];
-                // lockForUpdate() is critical to prevent race conditions
-                $ett = \App\Models\EventTicketType::where('id', $ticketTypeId)->lockForUpdate()->first();
-                if (!$ett)
-                    continue;
+                $ett = EventTicketType::where('id', $item['id'])->lockForUpdate()->first();
+                if (!$ett) continue;
 
-                // Get reserved stock accounting for actual quantities, EXCLUDING current user.
                 $activeHolders = $ett->getReservedStock($user->id);
-                $requestedQty = (int)($item['qty'] ?? 1);
+                $requestedQty  = (int)($item['qty'] ?? 1);
 
-                \Illuminate\Support\Facades\Log::debug("[Queue] Ticket #{$ticketTypeId}: {$activeHolders} reserved / {$ett->stock} stock. Requesting: {$requestedQty}");
+                Log::debug("[Queue] Ticket #{$item['id']}: {$activeHolders} reserved / {$ett->stock} stock. Requesting: {$requestedQty}");
 
                 if (($activeHolders + $requestedQty) > $ett->stock) {
-                    $isBlocked = true;
-                    break;
+                    return false; // Not enough stock — go to waiting list
                 }
             }
 
-            if (!$isBlocked) {
-                $fullWishlist = [];
-                foreach ($cartData as $item) {
-                    $fullWishlist[] = [
-                        'id'    => (int)$item['id'],
-                        'name'  => (string)($item['name'] ?? 'Ticket'),
-                        'qty'   => (int)($item['qty'] ?? 1),
-                        'price' => (int)($item['price'] ?? 0),
-                    ];
-                }
+            // Stock available — create session
+            $wishlist = array_values(array_map(fn ($item) => [
+                'id'    => (int)$item['id'],
+                'name'  => (string)($item['name'] ?? 'Ticket'),
+                'qty'   => (int)($item['qty'] ?? 1),
+                'price' => (int)($item['price'] ?? 0),
+            ], $cartData));
 
-                ShoppingSession::updateOrCreate(
-                    ['user_id' => $user->id, 'event_id' => $event_id],
-                    [
-                        'wishlist'    => array_values($fullWishlist),
-                        'expires_at'  => now()->addMinutes(15)
-                    ]
-                );
+            ShoppingSession::updateOrCreate(
+                ['user_id' => $user->id, 'event_id' => $event_id],
+                ['wishlist' => $wishlist, 'expires_at' => now()->addMinutes(15)]
+            );
 
-                if ($existingWait) {
-                    $existingWait->delete();
-                    $this->reorderQueue($event_id);
-                }
-
-                // DB::transaction() handles commit automatically — do NOT call DB::commit() here!
-                return true;
+            if ($existingWait) {
+                $existingWait->delete();
+                $this->reorderQueue($event_id);
             }
 
-            return false;
+            return true;
         });
 
         if ($granted) {
             return redirect()->route('events.show', $event_id)->with('queue_granted', true);
         }
 
+        // Stock unavailable — add to waiting list
         if (!$existingWait) {
             $lastPosition = WaitingList::where('event_id', $event_id)->max('position') ?? 0;
             WaitingList::create([
-                'user_id' => $user->id,
+                'user_id'  => $user->id,
                 'event_id' => $event_id,
                 'position' => $lastPosition + 1,
-                'status' => 'waiting',
-                'wishlist' => $cartData
+                'status'   => 'waiting',
+                'wishlist' => $cartData,
             ]);
         } else {
-            // Update wishlist if they enter again with different selection while waiting
             $existingWait->update(['wishlist' => $cartData]);
         }
 
         return redirect()->route('queue.waiting-room', ['event_id' => $event_id]);
     }
 
+    /**
+     * Show the waiting room page. Uses server-stored wishlist to avoid sessionStorage dependency.
+     */
     public function waitingRoom($event_id)
     {
-        $user = Auth::user();
+        $user  = Auth::user();
         $event = Events::findOrFail($event_id);
 
         $myWait = WaitingList::where('user_id', $user->id)
@@ -163,37 +135,27 @@ class QueueController extends Controller
             ->first();
 
         if (!$myWait) {
-            $session = ShoppingSession::where('user_id', $user->id)->where('event_id', $event_id)->first();
+            // Check if already promoted to checkout
+            $session = ShoppingSession::where('user_id', $user->id)
+                ->where('event_id', $event_id)
+                ->first();
+
             if ($session && !$session->isExpired()) {
                 return redirect()->route('events.show', $event_id)->with('queue_granted', true);
             }
             return redirect()->route('events.show', $event_id)->with('error', 'Please try purchasing tickets again.');
         }
 
-        // Extract ticket IDs from the WaitingList wishlist (server-authoritative)
-        // This ensures the JS polling always has the correct ticket IDs
-        // regardless of whether sessionStorage is available.
-        $rawWishlist = $myWait->wishlist ?? [];
-
-        // Normalize: always produce a sequential (indexed) array, never associative.
-        // The stored wishlist may be {"7": {...}} (assoc) or [{...}, {...}] (sequential).
-        // array_values() ensures we always get [{id:7,...}, {id:8,...}] in JS.
-        $serverWishlist = array_values(
-            array_map(function ($item) {
-                return [
-                    'id'    => (int)($item['id'] ?? 0),
-                    'name'  => (string)($item['name'] ?? 'Ticket'),
-                    'price' => (int)($item['price'] ?? 0),
-                    'qty'   => (int)($item['qty'] ?? 1),
-                ];
-            }, $rawWishlist)
-        );
-
+        // Normalise wishlist for consistent JS consumption
+        $serverWishlist = $this->normaliseWishlist($myWait->wishlist ?? []);
         $serverTicketIds = array_values(array_column($serverWishlist, 'id'));
 
         return view('user.waiting-room', compact('event', 'myWait', 'serverTicketIds', 'serverWishlist'));
     }
 
+    /**
+     * AJAX endpoint: check queue position and stock availability.
+     */
     public function status(Request $request, $event_id)
     {
         $user = Auth::user();
@@ -202,28 +164,27 @@ class QueueController extends Controller
         $this->promoteQueue($event_id);
 
         // Check if tickets are completely sold out
-        $totalStock = \App\Models\EventTicketType::where('event_id', $event_id)->sum('stock');
+        $totalStock  = EventTicketType::where('event_id', $event_id)->sum('stock');
         $activeCount = ShoppingSession::where('event_id', $event_id)->count();
 
         if ($totalStock <= 0 && $activeCount <= 0) {
-            WaitingList::where('user_id', $user->id)
-                ->where('event_id', $event_id)
-                ->delete();
+            WaitingList::where('user_id', $user->id)->where('event_id', $event_id)->delete();
 
             return response()->json([
-                'status' => 'sold_out',
+                'status'   => 'sold_out',
                 'redirect' => route('events.show', $event_id) . '?error=sold_out',
-                'message' => 'Sorry, tickets for this event have just sold out.'
+                'message'  => 'Sorry, tickets for this event have just sold out.',
             ]);
         }
 
+        // Check if user was promoted to checkout
         $session = ShoppingSession::where('user_id', $user->id)
             ->where('event_id', $event_id)
             ->first();
 
         if ($session && !$session->isExpired()) {
             return response()->json([
-                'status' => 'granted',
+                'status'   => 'granted',
                 'redirect' => route('events.show', $event_id) . '?queue_granted=1',
             ]);
         }
@@ -236,44 +197,20 @@ class QueueController extends Controller
             return response()->json(['status' => 'not_found']);
         }
 
-        // --- NEW: Smart Stock Info for Wishlist ---
-        $wishlistStock = [];
-        $requestedIds = $request->query('ticket_ids', []);
-
-        if (!empty($requestedIds)) {
-            $ticketTypes = \App\Models\EventTicketType::whereIn('id', $requestedIds)
-                ->with('ticketType')
-                ->get();
-
-            foreach ($ticketTypes as $tt) {
-                // Extract user's requested qty for this specific ticket type
-                $requestedQty = 1;
-                if ($myWait && $myWait->wishlist) {
-                    foreach ($myWait->wishlist as $wItem) {
-                        if ($wItem['id'] == $tt->id) {
-                            $requestedQty = (int)($wItem['qty'] ?? 1);
-                        }
-                    }
-                }
-
-                $activeHolders = $tt->getReservedStock($user->id);
-
-                $wishlistStock[] = [
-                    'id' => (int)$tt->id,
-                    'is_available' => ($activeHolders + $requestedQty) <= $tt->stock,
-                    'is_sold_out' => $tt->stock < $requestedQty
-                ];
-            }
-        }
+        // Build stock availability info for the user's wishlist
+        $wishlistStock = $this->buildWishlistStockInfo($request, $myWait, $user->id);
 
         return response()->json([
-            'status' => $myWait->status,
-            'position' => $myWait->position ?? 1,
-            'wishlist_stock' => $wishlistStock,
-            'server_time' => now()->toTimeString(),
+            'status'         => $myWait->status,
+            'position'       => $myWait->position ?? 1,
+            'wishlist_stock'  => $wishlistStock,
+            'server_time'    => now()->toTimeString(),
         ]);
     }
 
+    /**
+     * Release a checkout session voluntarily.
+     */
     public function release(Request $request, $event_id)
     {
         $user = Auth::user();
@@ -283,7 +220,7 @@ class QueueController extends Controller
             ->delete();
 
         if ($deleted) {
-            \Illuminate\Support\Facades\Log::info("User {$user->id} released session for event {$event_id}");
+            Log::info("User {$user->id} released session for event {$event_id}");
             $this->promoteQueue($event_id);
         }
 
@@ -291,12 +228,17 @@ class QueueController extends Controller
             return response()->json(['status' => 'released']);
         }
 
-        return redirect()->route('events.show', $event_id)->with('success', 'Your queue session has been released.');
+        return redirect()->route('events.show', $event_id)
+            ->with('success', 'Your queue session has been released.');
     }
 
+    /**
+     * Remove a specific ticket type from wishlist (when sold out).
+     * If no tickets remain, cancel the waiting entry entirely.
+     */
     public function skipCategory(Request $request, $event_id)
     {
-        $user = Auth::user();
+        $user         = Auth::user();
         $ticketTypeId = $request->input('ticket_type_id');
 
         $waiting = WaitingList::where('user_id', $user->id)
@@ -304,14 +246,9 @@ class QueueController extends Controller
             ->first();
 
         if ($waiting && $waiting->wishlist) {
-            $wishlist = $waiting->wishlist;
-            // Remove the specific category
-            $newWishlist = array_filter($wishlist, function ($item) use ($ticketTypeId) {
-                return $item['id'] != $ticketTypeId;
-            });
-
-            // Re-index array
-            $newWishlist = array_values($newWishlist);
+            $newWishlist = array_values(
+                array_filter($waiting->wishlist, fn ($item) => $item['id'] != $ticketTypeId)
+            );
 
             if (empty($newWishlist)) {
                 $waiting->delete();
@@ -319,60 +256,123 @@ class QueueController extends Controller
             }
 
             $waiting->update(['wishlist' => $newWishlist]);
-
-            // Try to promote immediately after removing the blocking category
             $this->promoteQueue($event_id);
         }
 
         return response()->json(['status' => 'updated']);
     }
 
-    private function cleanupExpired($event_id)
-    {
-        $expired = ShoppingSession::where('event_id', $event_id)
-            ->where('expires_at', '<', now())
-            ->get();
+    // ─── Private Helpers ─────────────────────────────────
 
-        foreach ($expired as $session) {
-            $session->delete();
+    /**
+     * Normalise cart input from query string or request body.
+     */
+    private function normaliseCartInput(Request $request): array
+    {
+        $rawCart = $request->input('wishlist') ?: $request->input('cart_data');
+        $cartData = is_string($rawCart) ? (json_decode($rawCart, true) ?: []) : (is_array($rawCart) ? $rawCart : []);
+        return array_values($cartData);
+    }
+
+    /**
+     * Check if an existing ShoppingSession's wishlist is still fulfillable.
+     */
+    private function isSessionStillValid(ShoppingSession $session, int $userId): bool
+    {
+        foreach ($session->wishlist ?? [] as $item) {
+            $ett = EventTicketType::find($item['id']);
+            if (!$ett) continue;
+
+            $otherHolders = $ett->getReservedStock($userId);
+            $requestedQty = (int)($item['qty'] ?? 1);
+
+            if (($otherHolders + $requestedQty) > $ett->stock) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Normalise wishlist array to a consistent sequential format.
+     */
+    private function normaliseWishlist(array $rawWishlist): array
+    {
+        return array_values(array_map(fn ($item) => [
+            'id'    => (int)($item['id'] ?? 0),
+            'name'  => (string)($item['name'] ?? 'Ticket'),
+            'price' => (int)($item['price'] ?? 0),
+            'qty'   => (int)($item['qty'] ?? 1),
+        ], $rawWishlist));
+    }
+
+    /**
+     * Build stock availability data for the user's wishlisted ticket types.
+     */
+    private function buildWishlistStockInfo(Request $request, WaitingList $myWait, int $userId): array
+    {
+        $requestedIds = $request->query('ticket_ids', []);
+        if (empty($requestedIds)) return [];
+
+        $ticketTypes = EventTicketType::whereIn('id', $requestedIds)->with('ticketType')->get();
+        $result = [];
+
+        foreach ($ticketTypes as $tt) {
+            $requestedQty = 1;
+            foreach ($myWait->wishlist ?? [] as $wItem) {
+                if ($wItem['id'] == $tt->id) {
+                    $requestedQty = (int)($wItem['qty'] ?? 1);
+                }
+            }
+
+            $activeHolders = $tt->getReservedStock($userId);
+
+            $result[] = [
+                'id'           => (int)$tt->id,
+                'is_available' => ($activeHolders + $requestedQty) <= $tt->stock,
+                'is_sold_out'  => $tt->stock < $requestedQty,
+            ];
         }
 
-        $expiredGrants = WaitingList::where('event_id', $event_id)
+        return $result;
+    }
+
+    /**
+     * Delete expired sessions and waiting-list grants, then reorder queue.
+     */
+    private function cleanupExpired($event_id): void
+    {
+        ShoppingSession::where('event_id', $event_id)
+            ->where('expires_at', '<', now())
+            ->delete();
+
+        WaitingList::where('event_id', $event_id)
             ->where('status', 'granted')
             ->where('expires_at', '<', now())
-            ->get();
-
-        foreach ($expiredGrants as $grant) {
-            $grant->delete();
-        }
+            ->delete();
 
         $this->reorderQueue($event_id);
     }
 
-    private function promoteQueue($event_id)
+    /**
+     * Promote waiting-list users to checkout when stock becomes available.
+     */
+    private function promoteQueue($event_id): void
     {
-        $event = Events::find($event_id);
-        if (!$event)
-            return;
-
         $waiting = WaitingList::where('event_id', $event_id)
             ->where('status', 'waiting')
             ->orderBy('position')
             ->get();
 
         foreach ($waiting as $entry) {
-            $wishlist = $entry->wishlist ?? [];
             $canPromote = true;
 
-            foreach ($wishlist as $item) {
-                $ticketTypeId = $item['id'];
-                $ett = \App\Models\EventTicketType::find($ticketTypeId);
-
-                if (!$ett)
-                    continue;
+            foreach ($entry->wishlist ?? [] as $item) {
+                $ett = EventTicketType::find($item['id']);
+                if (!$ett) continue;
 
                 $activeHolders = $ett->getReservedStock($entry->user_id);
-                $requestedQty = (int)($item['qty'] ?? 1);
+                $requestedQty  = (int)($item['qty'] ?? 1);
 
                 if (($activeHolders + $requestedQty) > $ett->stock) {
                     $canPromote = false;
@@ -381,13 +381,11 @@ class QueueController extends Controller
             }
 
             if ($canPromote) {
-                \Illuminate\Support\Facades\Log::info("Promoting User {$entry->user_id} to checkout for event {$event_id}");
+                Log::info("Promoting User {$entry->user_id} to checkout for event {$event_id}");
+
                 ShoppingSession::updateOrCreate(
                     ['user_id' => $entry->user_id, 'event_id' => $event_id],
-                    [
-                        'wishlist' => $wishlist,
-                        'expires_at' => now()->addMinutes(15)
-                    ]
+                    ['wishlist' => $entry->wishlist, 'expires_at' => now()->addMinutes(15)]
                 );
                 $entry->delete();
             }
@@ -396,7 +394,10 @@ class QueueController extends Controller
         $this->reorderQueue($event_id);
     }
 
-    private function reorderQueue($event_id)
+    /**
+     * Reorder waiting list positions to be sequential (1, 2, 3...).
+     */
+    private function reorderQueue($event_id): void
     {
         $waiting = WaitingList::where('event_id', $event_id)
             ->where('status', 'waiting')

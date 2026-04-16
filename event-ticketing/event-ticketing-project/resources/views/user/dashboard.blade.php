@@ -86,6 +86,51 @@
                 </section>
             @endif
 
+            <!-- ── Active Waiting Lists Widget ── -->
+            @if(isset($waitingLists) && !$waitingLists->isEmpty())
+                <section class="animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight flex items-center gap-2">
+                            your waiting lists
+                        </h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($waitingLists as $waitlist)
+                            <div
+                                class="bg-white border-l-4 border-indigo-500 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition hover:shadow-md">
+                                <div class="flex items-center gap-5">
+                                    <div
+                                        class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shrink-0">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-gray-800 text-[15px] leading-tight mb-1">
+                                            {{ $waitlist->event->title ?? 'Event' }}</h4>
+                                        <div class="flex items-center gap-4 text-sm font-bold">
+                                            <span
+                                                class="text-indigo-600 bg-indigo-50 px-3 py-0.5 rounded-full flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                                                Status: In Queue
+                                            </span>
+                                            <span class="text-gray-400 text-xs mt-0.5">joined time: {{ $waitlist->created_at->format('d M, H:i') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-5 py-2 bg-[#F4F4F4] text-[#555555] rounded-full text-xs font-bold shadow-sm whitespace-nowrap lowercase">
+                                        waiting for a spot
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             <!-- ── Live Search Bar ── -->
             <section class="relative z-20">
                 <div

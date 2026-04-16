@@ -61,92 +61,93 @@
 
             <!-- Users Table -->
             <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-gray-100">
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Name</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Username</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Email</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Role</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Status</th>
-                            <th class="text-right px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($users as $user)
-                            <tr class="hover:bg-[#FAFAFA] transition">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 min-w-[2.5rem] rounded-xl bg-[#E5E5E3] flex items-center justify-center font-bold text-[#555555] text-xs uppercase shrink-0">
-                                            {{ substr($user->name, 0, 1) }}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm min-w-max">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Name</th>
+                                <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Username</th>
+                                <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Email</th>
+                                <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Role</th>
+                                <th class="text-left px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Status</th>
+                                <th class="text-right px-6 py-4 text-[10px] font-bold text-[#777777] uppercase tracking-widest whitespace-nowrap">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse($users as $user)
+                                <tr class="hover:bg-[#FAFAFA] transition">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 min-w-[2.5rem] rounded-xl bg-[#E5E5E3] flex items-center justify-center font-bold text-[#555555] text-xs uppercase shrink-0">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </div>
+                                            <span class="font-semibold text-[#444444]">{{ $user->name }}</span>
                                         </div>
-                                        <span class="font-semibold text-[#444444]">{{ $user->name }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-[#555555]">{{ $user->username }}</td>
-                                <td class="px-6 py-4 text-[#555555]">{{ $user->email }}</td>
-                                <td class="px-6 py-4">
-                                    @if($user->role === 'admin')
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-gray-800 text-white">admin</span>
-                                    @elseif($user->role === 'organizer')
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-blue-100 text-blue-700">organizer</span>
-                                    @else
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[#F4F4F4] text-[#777777]">user</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if($user->is_active)
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-100 text-green-700">active</span>
-                                    @else
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-red-100 text-red-600">inactive</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex justify-end items-center gap-2">
-                                        <!-- Edit -->
-                                        <a href="{{ route('admin.users.edit', $user) }}"
-                                           class="px-3 py-1.5 bg-[#F4F4F4] text-[#555555] rounded-lg text-xs font-bold hover:bg-[#E5E5E3] transition lowercase">
-                                            edit
-                                        </a>
-
-                                        <!-- Toggle Active (hidden for self) -->
-                                        @if($user->id !== auth()->id())
-                                        <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit"
-                                                class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase transition
-                                                    {{ $user->is_active
-                                                        ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                                        : 'bg-green-50 text-green-600 hover:bg-green-100' }}">
-                                                {{ $user->is_active ? 'deactivate' : 'activate' }}
-                                            </button>
-                                        </form>
-
-                                        <!-- Delete -->
-                                        <button type="button"
-                                            onclick="openDeleteModal('{{ $user->id }}', '{{ addslashes($user->name) }}')"
-                                            class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase transition bg-red-100 text-red-700 hover:bg-red-200">
-                                            delete
-                                        </button>
+                                    </td>
+                                    <td class="px-6 py-4 text-[#555555] whitespace-nowrap">{{ $user->username }}</td>
+                                    <td class="px-6 py-4 text-[#555555] whitespace-nowrap">{{ $user->email }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($user->role === 'admin')
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-gray-800 text-white">admin</span>
+                                        @elseif($user->role === 'organizer')
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-blue-100 text-blue-700">organizer</span>
                                         @else
-                                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase text-[#BBBBBB] bg-[#F9F9F9] cursor-not-allowed" title="Cannot deactivate your own account">
-                                            you
-                                        </span>
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[#F4F4F4] text-[#777777]">user</span>
                                         @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-[#777777] text-sm">
-                                    no users found.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($user->is_active)
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-100 text-green-700">active</span>
+                                        @else
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-red-100 text-red-600">inactive</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex justify-end items-center gap-2">
+                                            <!-- Edit -->
+                                            <a href="{{ route('admin.users.edit', $user) }}"
+                                               class="px-3 py-1.5 bg-[#F4F4F4] text-[#555555] rounded-lg text-xs font-bold hover:bg-[#E5E5E3] transition lowercase">
+                                                edit
+                                            </a>
+    
+                                            <!-- Toggle Active (hidden for self) -->
+                                            @if($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                    class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase transition
+                                                        {{ $user->is_active
+                                                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                                            : 'bg-green-50 text-green-600 hover:bg-green-100' }}">
+                                                    {{ $user->is_active ? 'deactivate' : 'activate' }}
+                                                </button>
+                                            </form>
+    
+                                            <!-- Delete -->
+                                            <button type="button"
+                                                onclick="openDeleteModal('{{ $user->id }}', '{{ addslashes($user->name) }}')"
+                                                class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase transition bg-red-100 text-red-700 hover:bg-red-200">
+                                                delete
+                                            </button>
+                                            @else
+                                            <span class="px-3 py-1.5 rounded-lg text-xs font-bold lowercase text-[#BBBBBB] bg-[#F9F9F9] cursor-not-allowed" title="Cannot deactivate your own account">
+                                                you
+                                            </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-[#777777] text-sm">
+                                        no users found.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Pagination -->
                 @if($users->hasPages())
                     <div class="px-6 py-4 border-t border-gray-100">

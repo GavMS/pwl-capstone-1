@@ -4,6 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Voucher Model
+ *
+ * Discount codes (percentage-based) that can be global or event-specific.
+ * Supports limits: max usage, date validity, minimum purchase, max discount cap.
+ *
+ * Used by: Admin\VoucherController (CRUD), VoucherController (apply), CheckoutController.
+ */
 class Voucher extends Model
 {
     protected $fillable = [
@@ -21,28 +29,37 @@ class Voucher extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'        => 'boolean',
         'discount_percent' => 'integer',
-        'max_uses' => 'integer',
-        'used_count' => 'integer',
-        'valid_from' => 'datetime',
-        'valid_until' => 'datetime',
-        'min_purchase' => 'integer',
-        'max_discount' => 'integer',
+        'max_uses'         => 'integer',
+        'used_count'       => 'integer',
+        'valid_from'       => 'datetime',
+        'valid_until'      => 'datetime',
+        'min_purchase'     => 'integer',
+        'max_discount'     => 'integer',
     ];
 
+    // ─── Relationships ───────────────────────────────────
+
+    /** Event scope (null = global voucher) */
     public function event()
     {
         return $this->belongsTo(Events::class, 'event_id', 'id_event');
     }
 
+    /** Usage records for tracking per-user redemptions */
     public function usages()
     {
         return $this->hasMany(VoucherUsage::class);
     }
 
-    // Business Logic: Check if valid globally or for specific event, applying new limits
-    public function isValidForOrder($eventId = null, $totalPrice = 0)
+    // ─── Business Logic ──────────────────────────────────
+
+    /**
+     * Check if this voucher is valid for a specific order.
+     * Returns [bool $isValid, string $message].
+     */
+    public function isValidForOrder($eventId = null, $totalPrice = 0): array
     {
         if (!$this->is_active) {
             return [false, 'Voucher tidak aktif.'];
@@ -71,11 +88,13 @@ class Voucher extends Model
         return [true, 'Voucher valid'];
     }
 
-    public function calculateDiscount($totalPrice)
+    /**
+     * Calculate the discount amount, capped by max_discount if set.
+     */
+    public function calculateDiscount($totalPrice): int
     {
-        $discount = floor(($this->discount_percent / 100) * $totalPrice);
+        $discount = (int) floor(($this->discount_percent / 100) * $totalPrice);
 
-        // Cap nominal discount if max_discount is defined
         if ($this->max_discount !== null && $this->max_discount > 0 && $discount > $this->max_discount) {
             $discount = $this->max_discount;
         }

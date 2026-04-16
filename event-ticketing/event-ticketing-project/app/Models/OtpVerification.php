@@ -4,6 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * OtpVerification Model
+ *
+ * Stores one-time passwords for email verification during registration.
+ * OTP codes expire after 10 minutes and can only be used once.
+ *
+ * Used by: Auth\RegisteredUserController (store, verifyOtp, resendOtp).
+ */
 class OtpVerification extends Model
 {
     protected $fillable = [

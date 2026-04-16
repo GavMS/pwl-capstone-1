@@ -5,32 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * EventCategories Model
+ *
+ * Master data for event categories (e.g. Music, Workshop, Festival).
+ *
+ * Used by: Admin\EventCategoryController (CRUD), EventController (create/edit forms), UserController (explore filter).
+ */
 class EventCategories extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     */
-    protected $table = 'event_categories';
-
-    /**
-     * The primary key for the table.
-     */
+    protected $table      = 'event_categories';
     protected $primaryKey = 'id_category';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'slug',
         'description',
     ];
 
-    /**
-     * Get the events for the category.
-     */
+    // ─── Relationships ───────────────────────────────────
+
+    /** Events in this category */
     public function events()
     {
         return $this->hasMany(Events::class, 'category_id', 'id_category');
