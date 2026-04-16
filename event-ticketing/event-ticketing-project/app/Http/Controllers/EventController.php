@@ -83,7 +83,7 @@ class EventController extends Controller
 
             // Drop session if user navigated here manually (without queue_granted flag).
             // This returns their reserved stock to the waiting list immediately.
-            if ($activeSession && !session()->has('queue_granted')) {
+            if ($activeSession && !session()->has('queue_granted') && !request()->has('queue_granted')) {
                 $activeSession->delete();
                 $activeSession = null;
             }
