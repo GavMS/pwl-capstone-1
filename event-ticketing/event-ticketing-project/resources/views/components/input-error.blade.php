@@ -1,3 +1,4 @@
+{{-- Input Error — Used in: auth forms, profile forms, admin CRUD forms to show validation errors --}}
 @props(['messages'])
 
 @if ($messages)

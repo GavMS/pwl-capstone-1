@@ -3,27 +3,43 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Transaction;
-use App\Models\EventTicketType;
-use App\Models\IssuedTicket;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Transaction;
+use App\Models\EventTicketType;
+use App\Models\ShoppingSession;
 
+/**
+ * PaymentCallbackController
+ *
+ * Handles Midtrans webhook notifications (server-to-server).
+ * When payment is confirmed, issues tickets via Transaction::issueTickets().
+ *
+ * Route: POST /midtrans/callback (excluded from CSRF verification)
+ */
 class PaymentCallbackController extends Controller
 {
+    /**
+     * Process incoming Midtrans payment notification.
+     */
     public function handle(Request $request)
     {
-        $payload = $request->getContent();
-        $notification = json_decode($payload);
+        $notification = json_decode($request->getContent());
 
         if (!$notification) {
             return response(['message' => 'Invalid payload'], 400);
         }
 
-        $validSignatureKey = hash("sha512", $notification->order_id . $notification->status_code . $notification->gross_amount . config('midtrans.server_key'));
+        // Verify signature to prevent spoofed callbacks
+        $expectedSignature = hash(
+            'sha512',
+            $notification->order_id
+                . $notification->status_code
+                . $notification->gross_amount
+                . config('midtrans.server_key')
+        );
 
-        if ($notification->signature_key != $validSignatureKey) {
+        if ($notification->signature_key !== $expectedSignature) {
             return response(['message' => 'Invalid signature'], 403);
         }
 
@@ -33,84 +49,78 @@ class PaymentCallbackController extends Controller
             return response(['message' => 'Transaction not found'], 404);
         }
 
-        $transactionStatus = $notification->transaction_status;
-        $type = $notification->payment_type;
-        $orderId = $notification->order_id;
-        $fraudStatus = $notification->fraud_status ?? '';
-
-        if (in_array($transaction->status, ['success'])) {
+        // Skip if already successfully processed (idempotent)
+        if ($transaction->status === 'success') {
             return response(['message' => 'Already processed']);
         }
 
-        $newStatus = $transaction->status;
-        if ($transactionStatus == 'capture') {
-            if ($fraudStatus == 'accept') {
-                $newStatus = 'success';
-            }
-        } else if ($transactionStatus == 'settlement') {
-            $newStatus = 'success';
-        } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
-            $newStatus = 'expired';
-        } else if ($transactionStatus == 'pending') {
-            $newStatus = 'pending';
-        }
+        // Map Midtrans status to internal status
+        $newStatus = $this->mapTransactionStatus(
+            $notification->transaction_status,
+            $notification->fraud_status ?? ''
+        );
 
-        $transaction->status = $newStatus;
-        $transaction->payment_method = $type;
+        $transaction->status         = $newStatus;
+        $transaction->payment_method = $notification->payment_type;
         $transaction->save();
 
-        if ($transaction->status == 'success' && $transaction->issuedTickets()->count() == 0) {
+        // Issue tickets on successful payment (only if none issued yet)
+        if ($newStatus === 'success' && $transaction->issuedTickets()->count() === 0) {
             DB::beginTransaction();
             try {
-                $payloadArray = $transaction->ticket_payload;
-                $customerDetails = $transaction->customer_details;
-                $attendeeIndex = 0;
-
-                foreach ($payloadArray as $item) {
-                    $ett = EventTicketType::lockForUpdate()->findOrFail($item['event_ticket_type_id']);
-
-                    if ($ett->stock >= $item['quantity']) {
-                        $ett->decrement('stock', $item['quantity']);
-
-                        for ($i = 0; $i < $item['quantity']; $i++) {
-                            $attendee = $customerDetails[$attendeeIndex] ?? null;
-
-                            $ticket = IssuedTicket::create([
-                                'user_id' => $transaction->accounts_id,
-                                'event_ticket_type_id' => $ett->id,
-                                'transaction_id' => $transaction->id,
-                                'unique_code' => 'TIX-' . strtoupper(Str::random(10)),
-                                'status' => 'active',
-                                'attendee_name'        => $attendee['name'] ?? null,
-                                'attendee_email'       => $attendee['email'] ?? null,
-                                'attendee_phone'       => $attendee['phone'] ?? null,
-                                'attendee_id_card'     => $attendee['id_card'] ?? null,
-                                'attendee_dob'         => $attendee['dob'] ?? null,
-                                'attendee_gender'      => $attendee['gender'] ?? null,
-                            ]);
-
-                            if ($attendee && !empty($attendee['email'])) {
-                                try {
-                                    \Illuminate\Support\Facades\Mail::to($attendee['email'])->send(new \App\Mail\TicketMailable($ticket));
-                                } catch (\Exception $mailEx) {
-                                    Log::error("Failed to send ticket email: " . $mailEx->getMessage());
-                                }
-                            }
-
-                            $attendeeIndex++;
-                        }
-                    } else {
-                        Log::error("Out of stock during callback for order {$orderId}");
-                    }
-                }
+                $transaction->issueTickets();
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error("Ticket generation failed: " . $e->getMessage());
+                Log::error("Ticket generation failed for {$transaction->order_id}: " . $e->getMessage());
                 return response(['message' => 'Internal error'], 500);
             }
         }
 
+        // Clean up queue session on terminal states (success or expired)
+        if (in_array($newStatus, ['success', 'expired'])) {
+            $this->releaseQueueSession($transaction);
+        }
+
         return response(['message' => 'OK']);
+    }
+
+    // ─── Private Helpers ─────────────────────────────────
+
+    /**
+     * Map Midtrans transaction_status to our internal status string.
+     */
+    private function mapTransactionStatus(string $midtransStatus, string $fraudStatus): string
+    {
+        if ($midtransStatus === 'capture' && $fraudStatus === 'accept') {
+            return 'success';
+        }
+
+        if ($midtransStatus === 'settlement') {
+            return 'success';
+        }
+
+        if (in_array($midtransStatus, ['cancel', 'deny', 'expire'])) {
+            return 'expired';
+        }
+
+        return 'pending'; // Default: still waiting
+    }
+
+    /**
+     * Release the ShoppingSession tied to this transaction's event.
+     */
+    private function releaseQueueSession(Transaction $transaction): void
+    {
+        $payload = $transaction->ticket_payload;
+        if (empty($payload)) return;
+
+        $ett = EventTicketType::find($payload[0]['event_ticket_type_id'] ?? null);
+
+        if ($ett && $ett->event) {
+            ShoppingSession::where('user_id', $transaction->accounts_id)
+                ->where('event_id', $ett->event->id_event)
+                ->delete();
+        }
     }
 }

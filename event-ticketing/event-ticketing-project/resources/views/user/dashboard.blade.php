@@ -86,6 +86,51 @@
                 </section>
             @endif
 
+            <!-- ── Active Waiting Lists Widget ── -->
+            @if(isset($waitingLists) && !$waitingLists->isEmpty())
+                <section class="animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight flex items-center gap-2">
+                            your waiting lists
+                        </h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($waitingLists as $waitlist)
+                            <div
+                                class="bg-white border-l-4 border-indigo-500 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition hover:shadow-md">
+                                <div class="flex items-center gap-5">
+                                    <div
+                                        class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shrink-0">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-gray-800 text-[15px] leading-tight mb-1">
+                                            {{ $waitlist->event->title ?? 'Event' }}</h4>
+                                        <div class="flex items-center gap-4 text-sm font-bold">
+                                            <span
+                                                class="text-indigo-600 bg-indigo-50 px-3 py-0.5 rounded-full flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                                                Status: In Queue
+                                            </span>
+                                            <span class="text-gray-400 text-xs mt-0.5">joined time: {{ $waitlist->created_at->format('d M, H:i') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-5 py-2 bg-[#F4F4F4] text-[#555555] rounded-full text-xs font-bold shadow-sm whitespace-nowrap lowercase">
+                                        waiting for a spot
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             <!-- ── Live Search Bar ── -->
             <section class="relative z-20">
                 <div
@@ -127,42 +172,84 @@
                 </div>
             </section>
 
-            <!-- ── Hero Banner (static first event) ── -->
+            <!-- ── Hero Banner Carousel ── -->
             <section class="relative">
                 @if($heroEvents->isEmpty())
                     <div class="w-full h-[400px] bg-gray-200 rounded-[2rem] flex items-center justify-center">
                         <p class="text-gray-500 font-medium lowercase">no events available yet.</p>
                     </div>
                 @else
-                    @php $heroEvent = $heroEvents->first(); @endphp
-                    <a href="{{ route('events.show', $heroEvent->id_event) }}"
-                        class="block w-full h-[400px] rounded-[2rem] overflow-hidden relative shadow-sm group">
-                        @if($heroEvent->banner)
-                            <img src="{{ asset('storage/' . $heroEvent->banner) }}" alt="{{ $heroEvent->title }}"
-                                class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                        @else
-                            <div
-                                class="w-full h-full bg-gradient-to-br from-gray-600 to-gray-900 group-hover:scale-105 transition duration-700">
-                            </div>
-                        @endif
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
-                        <div class="absolute bottom-10 left-10 right-10 text-white md:w-2/3">
-                            @if($heroEvent->category)
-                                <span
-                                    class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-widest mb-3 border border-white/10">{{ $heroEvent->category->name }}</span>
-                            @endif
-                            <h2 class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight tracking-tight line-clamp-2">
-                                {{ $heroEvent->title }}</h2>
-                            <p class="text-white/90 font-medium text-sm md:text-base flex items-center gap-2">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                                {{ $heroEvent->date->translatedFormat('l, d F Y') }}&nbsp;&bull;&nbsp;{{ $heroEvent->location }}
-                            </p>
+                    <div x-data="{
+                        current: 0,
+                        total: {{ $heroEvents->count() }},
+                        autoSlide: null,
+                        startAuto() {
+                            this.autoSlide = setInterval(() => { this.next() }, 5000);
+                        },
+                        stopAuto() {
+                            clearInterval(this.autoSlide);
+                        },
+                        next() {
+                            this.current = (this.current + 1) % this.total;
+                        },
+                        prev() {
+                            this.current = (this.current - 1 + this.total) % this.total;
+                        }
+                    }" x-init="startAuto()" @mouseenter="stopAuto()" @mouseleave="startAuto()"
+                        class="relative w-full h-[400px] rounded-[2rem] overflow-hidden shadow-sm group">
+
+                        {{-- Slides --}}
+                        @foreach($heroEvents as $index => $heroEvent)
+                            <a href="{{ route('events.show', $heroEvent->id_event) }}"
+                                x-show="current === {{ $index }}"
+                                x-transition:enter="transition ease-out duration-500"
+                                x-transition:enter-start="opacity-0 scale-105"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-300"
+                                x-transition:leave-start="opacity-100"
+                                x-transition:leave-end="opacity-0"
+                                class="absolute inset-0 block">
+                                @if($heroEvent->banner)
+                                    <img src="{{ $heroEvent->banner_url }}" alt="{{ $heroEvent->title }}"
+                                        class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-gray-600 to-gray-900"></div>
+                                @endif
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+                                <div class="absolute bottom-10 left-10 right-10 text-white md:w-2/3">
+                                    @if($heroEvent->category)
+                                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold uppercase tracking-widest mb-3 border border-white/10">{{ $heroEvent->category->name }}</span>
+                                    @endif
+                                    <h2 class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight tracking-tight line-clamp-2">
+                                        {{ $heroEvent->title }}</h2>
+                                    <p class="text-white/90 font-medium text-sm md:text-base flex items-center gap-2">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        {{ $heroEvent->date->translatedFormat('l, d F Y') }}&nbsp;&bull;&nbsp;{{ $heroEvent->location }}
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
+
+                        {{-- Left / Right Navigation --}}
+                        <button @click="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md hover:bg-white/40 rounded-full flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 z-10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button @click="next()" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md hover:bg-white/40 rounded-full flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 z-10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+
+                        {{-- Dots Indicator --}}
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+                            @foreach($heroEvents as $index => $heroEvent)
+                                <button @click="current = {{ $index }}"
+                                    :class="current === {{ $index }} ? 'w-8 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/70'"
+                                    class="h-2.5 rounded-full transition-all duration-300"></button>
+                            @endforeach
                         </div>
-                    </a>
+                    </div>
                 @endif
             </section>
 
@@ -189,15 +276,46 @@
                     <div class="relative group/carousel">
                         <div class="flex gap-4 overflow-x-auto snap-x hide-scrollbar pb-4" id="categoryContainer"
                             style="scroll-behavior: smooth;">
+                            @php
+                                $categoryIcons = [
+                                    'tech workshop' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z"/></svg>',
+                                    'developer conference' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>',
+                                    'startup networking' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>',
+                                    'music concert' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z"/></svg>',
+                                    'comedy show' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>',
+                                    'art exhibition' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg>',
+                                    'virtual run' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z"/></svg>',
+                                    'food festival' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-3-4.87v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.38a48.474 48.474 0 00-6-.37c-2.032 0-4.034.126-6 .37m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.17c0 .62-.504 1.124-1.125 1.124H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265z"/></svg>',
+                                    'e-sports tournament' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.491 48.491 0 01-4.163-.3c-1.07-.16-1.837-1.09-1.837-2.175v-.745c0-.505.408-.914.914-.914h.522a.75.75 0 00.72-.545c.159-.559.597-1.005 1.165-1.123 1.048-.218 2.12-.34 3.213-.36A48.398 48.398 0 0112.25 1.5V0m0 24v-1.5a48.398 48.398 0 011.623-.084c1.093.02 2.165.142 3.213.36.568.118 1.006.564 1.165 1.123a.75.75 0 00.72.545h.522c.506 0 .914-.409.914-.914v-.745c0-1.085-.767-2.015-1.837-2.175a48.477 48.477 0 00-4.163-.3.64.64 0 01-.657-.643v0c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959"/></svg>',
+                                    'theater performance' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m4.015-9.492a48.354 48.354 0 00-16.57 0"/></svg>',
+                                ];
+                            @endphp
                             @foreach($categories as $category)
+                                @php
+                                    $key = strtolower($category->name ?? '');
+                                    $icon = $categoryIcons[$key] ?? '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>';
+                                    $categoryColors = [
+                                        'tech workshop' => ['bg' => 'bg-blue-50', 'hover' => 'group-hover:bg-blue-100', 'text' => 'text-blue-500', 'hoverText' => 'group-hover:text-blue-600'],
+                                        'developer conference' => ['bg' => 'bg-indigo-50', 'hover' => 'group-hover:bg-indigo-100', 'text' => 'text-indigo-500', 'hoverText' => 'group-hover:text-indigo-600'],
+                                        'startup networking' => ['bg' => 'bg-violet-50', 'hover' => 'group-hover:bg-violet-100', 'text' => 'text-violet-500', 'hoverText' => 'group-hover:text-violet-600'],
+                                        'music concert' => ['bg' => 'bg-rose-50', 'hover' => 'group-hover:bg-rose-100', 'text' => 'text-rose-500', 'hoverText' => 'group-hover:text-rose-600'],
+                                        'comedy show' => ['bg' => 'bg-amber-50', 'hover' => 'group-hover:bg-amber-100', 'text' => 'text-amber-500', 'hoverText' => 'group-hover:text-amber-600'],
+                                        'art exhibition' => ['bg' => 'bg-fuchsia-50', 'hover' => 'group-hover:bg-fuchsia-100', 'text' => 'text-fuchsia-500', 'hoverText' => 'group-hover:text-fuchsia-600'],
+                                        'virtual run' => ['bg' => 'bg-orange-50', 'hover' => 'group-hover:bg-orange-100', 'text' => 'text-orange-500', 'hoverText' => 'group-hover:text-orange-600'],
+                                        'food festival' => ['bg' => 'bg-red-50', 'hover' => 'group-hover:bg-red-100', 'text' => 'text-red-400', 'hoverText' => 'group-hover:text-red-500'],
+                                        'e-sports tournament' => ['bg' => 'bg-purple-50', 'hover' => 'group-hover:bg-purple-100', 'text' => 'text-purple-500', 'hoverText' => 'group-hover:text-purple-600'],
+                                        'theater performance' => ['bg' => 'bg-emerald-50', 'hover' => 'group-hover:bg-emerald-100', 'text' => 'text-emerald-500', 'hoverText' => 'group-hover:text-emerald-600'],
+                                    ];
+                                    $color = $categoryColors[$key] ?? ['bg' => 'bg-gray-50', 'hover' => 'group-hover:bg-gray-100', 'text' => 'text-gray-500', 'hoverText' => 'group-hover:text-gray-600'];
+                                @endphp
                                 <a href="{{ route('user.explore', ['category' => $category->id_category]) }}"
-                                    class="snap-start flex-shrink-0 w-[140px] bg-white rounded-[1.5rem] p-4 flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md transition group">
+                                    class="snap-start flex-shrink-0 w-[130px] flex flex-col items-center justify-center gap-3 group">
                                     <div
-                                        class="w-14 h-14 bg-[#F4F4F4] group-hover:bg-[#E5E5E3] transition rounded-full flex items-center justify-center text-xl font-extrabold text-[#777777]">
-                                        {{ substr($category->name, 0, 1) }}
+                                        class="w-16 h-16 {{ $color['bg'] }} {{ $color['hover'] }} rounded-full flex items-center justify-center {{ $color['text'] }} {{ $color['hoverText'] }} transition-all duration-300 group-hover:scale-105 shadow-sm">
+                                        {!! $icon !!}
                                     </div>
                                     <span
-                                        class="text-[10px] font-bold text-[#555555] text-center uppercase tracking-widest line-clamp-1 w-full"
+                                        class="text-[10px] font-bold text-[#555555] {{ $color['hoverText'] }} text-center uppercase tracking-widest line-clamp-2 w-full transition-colors"
                                         title="{{ $category->name }}">{{ $category->name }}</span>
                                 </a>
                             @endforeach
@@ -260,7 +378,7 @@
                                 <div
                                     class="w-full h-40 bg-gray-200 rounded-[1.5rem] overflow-hidden relative mb-4 flex-shrink-0">
                                     @if($event->banner)
-                                        <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                                        <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                     @else
                                         <div
@@ -363,7 +481,7 @@
                                 <!-- Event Banner -->
                                 <div class="w-20 h-20 bg-gray-200 rounded-[1.2rem] overflow-hidden flex-shrink-0">
                                     @if($event->banner)
-                                        <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                                        <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                     @else
                                         <div class="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
@@ -401,14 +519,29 @@
                 <div class="flex justify-between items-end mb-5">
                     <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">favorite creators</h3>
                 </div>
+                @php
+                    $creatorGradients = [
+                        'from-pink-500 to-rose-400',
+                        'from-violet-500 to-purple-400',
+                        'from-blue-500 to-cyan-400',
+                        'from-emerald-500 to-teal-400',
+                        'from-amber-500 to-orange-400',
+                        'from-fuchsia-500 to-pink-400',
+                        'from-indigo-500 to-blue-400',
+                        'from-red-500 to-rose-400',
+                    ];
+                @endphp
                 <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4 md:gap-8">
-                    @foreach($organizers->take(7) as $organizer)
+                    @foreach($organizers->take(7) as $index => $organizer)
                         <a href="{{ route('user.organizer.profile', $organizer->id) }}"
-                            class="flex flex-col items-center gap-2 group cursor-pointer hover:bg-transparent">
+                            class="flex flex-col items-center gap-2 group cursor-pointer">
                             <div
-                                class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full p-1 shadow-sm group-hover:shadow-md transition">
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode($organizer->name) }}&color=555555&background=E5E5E3"
-                                    class="w-full h-full rounded-full object-cover" alt="{{ $organizer->name }}">
+                                class="w-16 h-16 md:w-20 md:h-20 rounded-full p-[3px] bg-gradient-to-br {{ $creatorGradients[$index % count($creatorGradients)] }} shadow-sm group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+                                <div class="w-full h-full rounded-full bg-white flex items-center justify-center">
+                                    <span class="text-lg md:text-xl font-extrabold bg-gradient-to-br {{ $creatorGradients[$index % count($creatorGradients)] }} bg-clip-text text-transparent">
+                                        {{ strtoupper(substr($organizer->name, 0, 2)) }}
+                                    </span>
+                                </div>
                             </div>
                             <span class="text-[10px] font-bold text-[#555555] text-center w-full truncate px-1"
                                 title="{{ $organizer->name }}">{{ $organizer->name }}</span>

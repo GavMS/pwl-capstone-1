@@ -1,0 +1,126 @@
+Update Guide: Email OTP Verification on Registration
+=====================================================
+
+Setelah pull dari GitHub, ada beberapa langkah yang perlu dijalankan karena fitur ini
+menambahkan tabel baru, mail class baru, dan dependensi baru.
+
+Ikuti langkah-langkah berikut secara urut!
+
+----------------------------------------------------------------------
+LANGKAH 1: Pull dari GitHub
+----------------------------------------------------------------------
+
+Pastikan kamu sudah pull versi terbaru:
+
+    git pull origin main
+
+(Atau sesuaikan nama branch yang dipakai — bisa "master" atau nama lain)
+
+----------------------------------------------------------------------
+LANGKAH 2: Install/Update Composer Dependencies
+----------------------------------------------------------------------
+
+Fitur OTP menggunakan validasi email DNS (email:rfc,dns) yang membutuhkan
+package egulias/email-validator. Package ini biasanya sudah include di Laravel,
+tapi jalankan perintah ini untuk memastikan semua dependencies up-to-date:
+
+    composer install
+
+Kalau kamu sudah pernah install dan tidak ada perubahan composer.json,
+perintah ini akan selesai sangat cepat.
+
+----------------------------------------------------------------------
+LANGKAH 3: Jalankan Migrasi Tabel OTP
+----------------------------------------------------------------------
+
+Fitur ini menambahkan tabel baru bernama "otp_verifications". Jalankan:
+
+    php artisan migrate
+
+Output yang diharapkan (di antaranya):
+    2026_04_15_200000_create_otp_verifications_table ............... DONE
+
+CATATAN: Kalau kamu pakai "migrate:fresh", tabel lama akan DIHAPUS semua
+dan diganti fresh. Hati-hati kalau ada data penting di database lokal kamu.
+Gunakan "php artisan migrate" saja (tanpa :fresh) untuk update bertahap.
+
+----------------------------------------------------------------------
+LANGKAH 4: Setup Email (WAJIB untuk fitur OTP)
+----------------------------------------------------------------------
+
+Fitur OTP mengirimkan kode verifikasi ke email user saat registrasi.
+Kamu HARUS mengkonfigurasi email di file .env agar OTP terkirim.
+
+Buka file: event-ticketing/event-ticketing-project/.env
+
+Cari bagian MAIL dan isi dengan data akun Gmail milikmu:
+
+    MAIL_MAILER=smtp
+    MAIL_HOST=smtp.gmail.com
+    MAIL_PORT=465
+    MAIL_USERNAME="email-kamu@gmail.com"
+    MAIL_PASSWORD="app-password-16-karakter"
+    MAIL_ENCRYPTION=ssl
+    MAIL_FROM_ADDRESS="email-kamu@gmail.com"
+    MAIL_FROM_NAME="${APP_NAME}"
+
+>> Untuk cara membuat App Password Gmail, lihat file:
+   gmail-setup-instructions.txt (ada di folder event-ticketing/)
+
+----------------------------------------------------------------------
+LANGKAH 5: Clear Cache
+----------------------------------------------------------------------
+
+Setelah update .env dan migrate, bersihkan cache Laravel:
+
+    php artisan optimize:clear
+
+----------------------------------------------------------------------
+LANGKAH 6: Jalankan Server
+----------------------------------------------------------------------
+
+    php artisan serve
+
+Atau kalau pakai XAMPP, pastikan Apache & MySQL sudah running,
+lalu akses: http://localhost:8000 (atau port yang muncul di terminal)
+
+----------------------------------------------------------------------
+TESTING: Cara Coba Fitur OTP
+----------------------------------------------------------------------
+
+1. Buka halaman Register: http://localhost:8000/register
+2. Isi semua field (Name, Username, Email, Password)
+   - Gunakan email ASLI yang kamu punya aksesnya (OTP akan dikirim ke sana)
+   - Email palsu / tidak ada domain yang valid akan langsung ditolak dengan peringatan
+3. Klik Register
+4. Kamu akan diarahkan ke halaman "Check your email"
+5. Buka inbox email kamu, cari email dari Flowtix dengan subject:
+   "Your Flowtix OTP Verification Code"
+6. Masukkan 6-digit kode OTP ke dalam form
+7. Klik "Verify Email" → akun berhasil dibuat!
+
+Catatan tambahan:
+- OTP berlaku selama 10 menit
+- Kalau OTP expired, klik tombol "Resend OTP" untuk minta kode baru
+- Kalau email tidak valid (domain tidak exist), sistem akan langsung
+  menampilkan error di halaman register sebelum OTP dikirim
+
+----------------------------------------------------------------------
+TROUBLESHOOTING
+----------------------------------------------------------------------
+
+[ERROR] "Connection refused" atau email tidak terkirim
+  -> Pastikan MAIL_USERNAME, MAIL_PASSWORD, dan MAIL_FROM_ADDRESS sudah diisi benar
+  -> Pastikan kamu menggunakan App Password Gmail, bukan password akun biasa
+  -> Jalankan: php artisan optimize:clear  lalu coba lagi
+
+[ERROR] "Table otp_verifications doesn't exist"
+  -> Kamu belum migrate. Jalankan: php artisan migrate
+
+[ERROR] "Class OtpVerification not found" atau "Class OtpVerificationMail not found"
+  -> Jalankan: composer dump-autoload
+
+[ERROR] Setelah "php artisan migrate", muncul error "column already exists"
+  -> Tabel mungkin sudah sebagian ada. Hubungi yang push kode untuk solusi.
+
+----------------------------------------------------------------------

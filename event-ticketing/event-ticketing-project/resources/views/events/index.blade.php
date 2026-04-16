@@ -50,7 +50,7 @@
                                         <div style="display: flex; align-items: center; gap: 1rem;">
                                             <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: var(--gray-light); overflow: hidden; border: 1px solid var(--gray-border);">
                                                 @if($event->banner)
-                                                    <img src="{{ asset('storage/' . $event->banner) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    <img src="{{ $event->banner_url }}" style="width: 100%; height: 100%; object-fit: cover;">
                                                 @else
                                                     <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">
                                                         <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>

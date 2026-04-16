@@ -9,7 +9,7 @@
                         elseif (Auth::user()->role === 'organizer') $dashboardRoute = 'organizer.dashboard';
                     @endphp
                     <a href="{{ route($dashboardRoute) }}" class="text-2xl font-bold text-[#555555] tracking-tight hover:text-black transition">
-                        logo.
+                        Flowtix
                     </a>
                 </div>
 
@@ -19,9 +19,20 @@
                         {{ __('dashboard') }}
                     </x-nav-link>
 
-                    <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-semibold leading-5 text-[#555555]/60 hover:text-[#555555] transition lowercase">
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')"
+                                class="text-[#555555] font-semibold lowercase tracking-wide border-none pt-1">
+                        users
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')"
+                                class="text-[#555555] font-semibold lowercase tracking-wide border-none pt-1">
                         events
-                    </a>
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.vouchers.index')" :active="request()->routeIs('admin.vouchers.*')"
+                                class="text-[#555555] font-semibold lowercase tracking-wide border-none pt-1">
+                        vouchers
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 

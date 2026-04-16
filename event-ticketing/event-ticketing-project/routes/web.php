@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (!Auth::check()) {
-        return redirect()->route('login');
+        return redirect()->route('user.explore');
     }
 
     $role = Auth::user()->role;
@@ -21,20 +21,34 @@ Route::get('/', function () {
     return redirect()->route('user.dashboard');
 })->name('home');
 
+// Public browse pages (guest-friendly)
+Route::get('/explore', [\App\Http\Controllers\UserController::class, 'explore'])->name('user.explore');
+Route::get('/explore/creators', [\App\Http\Controllers\UserController::class, 'exploreCreators'])->name('user.explore.creators');
+Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile')->where('id', '[0-9]+');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Browse Events & Organizer Profile
-    Route::get('/explore', [\App\Http\Controllers\UserController::class, 'explore'])->name('user.explore');
-    Route::get('/explore/creators', [\App\Http\Controllers\UserController::class, 'exploreCreators'])->name('user.explore.creators');
-    Route::get('/organizer/{id}', [\App\Http\Controllers\UserController::class, 'organizerProfile'])->name('user.organizer.profile')->where('id', '[0-9]+');
+    // Event detail + purchase flow (login required)
     Route::get('/event/{id}', [EventController::class, 'show'])->name('events.show');
 
-    // Checkout
-    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
-    Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    // Queue & Waiting List
+    Route::get('/queue/{event_id}/enter', [\App\Http\Controllers\QueueController::class, 'enter'])->name('queue.enter');
+    Route::get('/queue/{event_id}/waiting-room', [\App\Http\Controllers\QueueController::class, 'waitingRoom'])->name('queue.waiting-room');
+    Route::get('/api/queue/{event_id}/status', [\App\Http\Controllers\QueueController::class, 'status'])->name('queue.status');
+    Route::post('/api/queue/{event_id}/release', [\App\Http\Controllers\QueueController::class, 'release'])->name('queue.release');
+    Route::post('/api/queue/{event_id}/skip', [\App\Http\Controllers\QueueController::class, 'skipCategory'])->name('queue.skip');
+
+    // Checkout (Protected by Queue)
+    Route::middleware('check.queue')->group(function () {
+        Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
+        Route::post('/checkout/process', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+    });
+
+    Route::post('/voucher/apply', [\App\Http\Controllers\VoucherController::class, 'apply'])->name('voucher.apply');
+
     Route::get('/checkout/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
     Route::post('/checkout/{order_id}/recreate', [\App\Http\Controllers\CheckoutController::class, 'recreate'])->name('checkout.recreate');
     Route::post('/checkout/{order_id}/mock', [\App\Http\Controllers\CheckoutController::class, 'mockSuccess'])->name('checkout.mock');
@@ -47,6 +61,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/financials', [\App\Http\Controllers\AdminController::class, 'financials'])->name('admin.financials');
+    Route::get('/admin/financials/export/excel', [\App\Http\Controllers\AdminController::class, 'exportFinancialsExcel'])->name('admin.financials.export.excel');
+    Route::get('/admin/financials/export/pdf', [\App\Http\Controllers\AdminController::class, 'exportFinancialsPDF'])->name('admin.financials.export.pdf');
 
 
     // Event CRUD — Admin
@@ -86,6 +102,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         'destroy' => 'admin.ticket-types.destroy',
     ]);
 
+    // Vouchers
+    Route::resource('/admin/vouchers', \App\Http\Controllers\Admin\VoucherController::class)->names([
+        'index' => 'admin.vouchers.index',
+        'create' => 'admin.vouchers.create',
+        'store' => 'admin.vouchers.store',
+        'edit' => 'admin.vouchers.edit',
+        'update' => 'admin.vouchers.update',
+        'destroy' => 'admin.vouchers.destroy',
+    ]);
+    Route::patch('/admin/vouchers/{voucher}/toggle', [\App\Http\Controllers\Admin\VoucherController::class, 'toggleActive'])->name('admin.vouchers.toggle');
+
 });
 
 Route::middleware(['auth', 'role:organizer'])->group(function () {
@@ -96,6 +123,8 @@ Route::middleware(['auth', 'role:organizer'])->group(function () {
     
     // Sales & Payouts — Organizer
     Route::get('/organizer/sales', [\App\Http\Controllers\OrganizerController::class, 'sales'])->name('organizer.sales');
+    Route::get('/organizer/sales/export/excel', [\App\Http\Controllers\OrganizerController::class, 'exportSalesExcel'])->name('organizer.sales.export.excel');
+    Route::get('/organizer/sales/export/pdf', [\App\Http\Controllers\OrganizerController::class, 'exportSalesPDF'])->name('organizer.sales.export.pdf');
     
     // Scan Tiket — Organizer
     Route::get('/organizer/scan', [\App\Http\Controllers\TicketScanController::class, 'index'])->name('organizer.scan');

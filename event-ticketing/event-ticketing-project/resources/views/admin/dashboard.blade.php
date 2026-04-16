@@ -66,6 +66,17 @@
                 </div>
             </section>
 
+            <!-- Transaction Chart -->
+            <section>
+                <div class="flex justify-between items-end mb-6">
+                    <h3 class="text-2xl font-bold text-[#444444] lowercase tracking-tight">revenue overview.</h3>
+                    <span class="text-xs font-bold text-[#999999] uppercase tracking-widest">last 6 months</span>
+                </div>
+                <div class="bg-white rounded-[2.5rem] shadow-sm p-8 border border-gray-50">
+                    <canvas id="adminRevenueChart" height="100"></canvas>
+                </div>
+            </section>
+
             <!-- Data Overview -->
             <div class="grid grid-cols-1 2xl:grid-cols-2 gap-12">
                 <!-- New Users -->
@@ -119,7 +130,7 @@
                                     
                                     <div class="w-12 h-12 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex-shrink-0 z-10">
                                         @if($recentEvent->banner)
-                                            <img src="{{ asset('storage/' . $recentEvent->banner) }}" class="w-full h-full object-cover">
+                                            <img src="{{ $recentEvent->banner_url }}" class="w-full h-full object-cover">
                                         @else
                                             <div class="w-full h-full bg-[#F4F4F4] flex items-center justify-center text-[#999999]">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -148,4 +159,80 @@
             
         </main>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const adminChartMonths  = @json($chartMonths);
+        const adminChartRevenue = @json($chartRevenue);
+
+        const ctx = document.getElementById('adminRevenueChart').getContext('2d');
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(85, 85, 85, 0.18)');
+        gradient.addColorStop(1, 'rgba(85, 85, 85, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: adminChartMonths,
+                datasets: [{
+                    label: 'Revenue (Rp)',
+                    data: adminChartRevenue,
+                    borderColor: '#444444',
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#444444',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#444444',
+                        bodyColor: '#777777',
+                        borderColor: '#e5e5e3',
+                        borderWidth: 1,
+                        padding: 14,
+                        cornerRadius: 16,
+                        callbacks: {
+                            label: function(context) {
+                                return ' Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#999999', font: { size: 11, weight: '700' } },
+                        border: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f4f4f4' },
+                        ticks: {
+                            color: '#999999',
+                            font: { size: 11, weight: '700' },
+                            callback: function(value) {
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'K';
+                                return 'Rp ' + value;
+                            }
+                        },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>

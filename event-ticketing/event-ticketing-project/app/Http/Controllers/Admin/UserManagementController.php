@@ -188,8 +188,8 @@ class UserManagementController extends Controller
                              ->with('error', "Cannot delete \"{$user->name}\". This account has existing transactions.");
         }
 
-        // 4. Cannot delete if user has e-tickets
-        $hasTickets = DB::table('e-tickets')->where('accounts_id', $user->id)->exists();
+        // 4. Cannot delete if user has issued tickets
+        $hasTickets = DB::table('issued_tickets')->where('user_id', $user->id)->exists();
         if ($hasTickets) {
             return redirect()->route('admin.users.index')
                              ->with('error', "Cannot delete \"{$user->name}\". This account has issued e-tickets.");
@@ -197,7 +197,7 @@ class UserManagementController extends Controller
 
         // 5. Cannot delete if organizer has created events
         if ($user->role === 'organizer') {
-            $hasEvents = DB::table('event')->where('accounts_id', $user->id)->exists();
+            $hasEvents = DB::table('event')->where('organizer_id', $user->id)->exists();
             if ($hasEvents) {
                 return redirect()->route('admin.users.index')
                                  ->with('error', "Cannot delete \"{$user->name}\". This organizer account has created events.");
@@ -205,7 +205,7 @@ class UserManagementController extends Controller
         }
 
         // Safe to delete — clean up waiting_lists first (non-critical data)
-        DB::table('waiting_lists')->where('accounts_id', $user->id)->delete();
+        DB::table('waiting_lists')->where('user_id', $user->id)->delete();
 
         // Force-logout the user being deleted
         DB::table('sessions')->where('user_id', $user->id)->delete();

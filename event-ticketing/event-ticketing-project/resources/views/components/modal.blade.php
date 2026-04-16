@@ -1,3 +1,4 @@
+{{-- Modal — Used in: profile/delete-user-form, admin user management (confirm dialogs) --}}
 @props([
     'name',
     'show' => false,

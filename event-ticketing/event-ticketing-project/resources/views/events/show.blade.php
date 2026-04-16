@@ -3,7 +3,7 @@
         {{-- Banner Section --}}
         <div class="w-full h-[40vh] md:h-[50vh] relative overflow-hidden bg-gray-900">
             @if($event->banner)
-                <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}"
+                <img src="{{ $event->banner_url }}" alt="{{ $event->title }}"
                     class="w-full h-full object-cover opacity-70">
             @else
                 <div class="w-full h-full bg-gradient-to-r from-teal-500 to-blue-600 opacity-80"></div>
@@ -130,45 +130,84 @@
                             <p class="text-gray-500 text-sm font-semibold">No tickets selected yet.</p>
                         </div>
 
-                        <!-- Checkout Form —> posts to CheckoutController -->
-                        <form action="{{ route('checkout.confirm') }}" method="POST" id="checkout-form" class="hidden flex-col gap-4">
-                            @csrf
-                            <input type="hidden" name="event_id" value="{{ $event->id_event }}">
-                            {{-- Hidden inputs untuk cart; diisi oleh JavaScript --}}
-                            <div id="hidden-inputs"></div>
-                            <div id="cart-items" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                                <!-- JS Injected Content -->
-                            </div>
+                        @php
+                            // SECURE CHECK: Verify the user actually has a valid ShoppingSession
+                            // instead of trusting URL query params or flash session alone.
+                            $hasValidQueueSession = \App\Models\ShoppingSession::where('user_id', Auth::id())
+                                ->where('event_id', $event->id_event)
+                                ->where('expires_at', '>', now())
+                                ->exists();
+                        @endphp
 
-                            <div class="pt-5 border-t border-dashed border-gray-200 mt-2">
-                                @if ($errors->any())
-                                    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-semibold">
-                                        ⚠️ Gagal diproses:
-                                        <ul class="list-disc ml-5 mt-1">
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                                @if (session('success'))
-                                    <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-semibold">
-                                        ✅ {{ session('success') }}
-                                    </div>
-                                @endif
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="text-gray-500 font-semibold text-sm" id="total-tickets-label">Total (0 Tickets)</span>
-                                    <span class="text-2xl font-black text-[#38b2ac]" id="total-price-label">Rp0</span>
+                        @if($hasValidQueueSession)
+                            {{-- User sudah lolos antrean: tampilkan form checkout langsung --}}
+                            <div id="queue-success-msg" class="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-2xl flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white shrink-0">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-
-                                <button type="button" onclick="attemptCheckout()" class="w-full py-3.5 rounded-xl bg-[#38b2ac] hover:bg-teal-600 text-white font-extrabold text-lg transition shadow-md shadow-teal-500/30 flex justify-center items-center gap-2 group">
-                                    Purchase Tickets
-                                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                </button>
+                                <div>
+                                    <p class="text-sm font-extrabold text-teal-800">It's Your Turn!</p>
+                                    <p class="text-xs text-teal-600 font-bold">Processing your order automatically...</p>
+                                </div>
                             </div>
-                        </form>
+                            <form action="{{ route('checkout.confirm') }}" method="POST" id="real-checkout-form" class="hidden flex-col gap-4">
+                                @csrf
+                                <input type="hidden" name="event_id" value="{{ $event->id_event }}">
+                                <div id="hidden-inputs-real"></div>
+                                <div id="cart-items" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+                                <div class="pt-5 border-t border-dashed border-gray-200 mt-2">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <span class="text-gray-500 font-semibold text-sm" id="total-tickets-label">Total (0 Tickets)</span>
+                                        <span class="text-2xl font-black text-[#38b2ac]" id="total-price-label">Rp0</span>
+                                    </div>
+                                    <button type="button" onclick="submitRealCheckout()" class="w-full py-3.5 rounded-xl bg-[#38b2ac] hover:bg-teal-600 text-white font-extrabold text-lg transition shadow-md shadow-teal-500/30 flex justify-center items-center gap-2 group">
+                                        Confirm & Proceed
+                                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        @else
+                            {{-- Form biasa — arahkan ke sistem antrean terlebih dahulu --}}
+                            <form action="{{ route('queue.enter', $event->id_event) }}" method="GET" id="checkout-form" class="hidden flex-col gap-4">
+                                <input type="hidden" name="wishlist" id="cart-data-input">
+                                <div id="cart-items" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+                                <div class="pt-5 border-t border-dashed border-gray-200 mt-2">
+                                    @if (request()->query('error') === 'sold_out')
+                                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-bold">
+                                            ✕ Sorry, tickets for this event have just sold out.
+                                        </div>
+                                    @endif
+
+                                    @if ($errors->any())
+                                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-semibold">
+                                            ⚠️ Failed to process:
+                                            <ul class="list-disc ml-5 mt-1">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                    @if (session('success'))
+                                        <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-semibold">
+                                            ✅ {{ session('success') }}
+                                        </div>
+                                    @endif
+                                    <div class="flex justify-between items-center mb-6">
+                                        <span class="text-gray-500 font-semibold text-sm" id="total-tickets-label">Total (0 Tickets)</span>
+                                        <span class="text-2xl font-black text-[#38b2ac]" id="total-price-label">Rp0</span>
+                                    </div>
+                                    <button type="button" onclick="attemptCheckout()" class="w-full py-3.5 rounded-xl bg-[#38b2ac] hover:bg-teal-600 text-white font-extrabold text-lg transition shadow-md shadow-teal-500/30 flex justify-center items-center gap-2 group">
+                                        Purchase Tickets
+                                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        @endif
                     </div>
                 </div>
 
@@ -218,22 +257,24 @@
 
         function renderCart() {
             const emptyState = document.getElementById('empty-cart');
-            const cartForm = document.getElementById('checkout-form');
+            const cartForm = document.getElementById('checkout-form') || document.getElementById('real-checkout-form');
             const cartItemsList = document.getElementById('cart-items');
-            
+
+            if (!cartForm || !cartItemsList) return;
+
             cartItemsList.innerHTML = '';
-            
+
             let totalQty = 0;
             let totalPrice = 0;
-            
+
             const itemKeys = Object.keys(cart);
 
             if (itemKeys.length === 0) {
-                emptyState.classList.remove('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
                 cartForm.classList.add('hidden');
                 cartForm.classList.remove('flex');
             } else {
-                emptyState.classList.add('hidden');
+                if (emptyState) emptyState.classList.add('hidden');
                 cartForm.classList.remove('hidden');
                 cartForm.classList.add('flex');
 
@@ -242,13 +283,11 @@
                     totalQty += item.qty;
                     totalPrice += (item.qty * item.price);
 
-                    // Buat tampilan cart item
                     let html = `
                         <div class="flex items-start justify-between gap-3 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                             <div class="flex-1">
                                 <h5 class="text-sm font-extrabold text-gray-900 leading-snug mb-1">${item.name}</h5>
                                 <div class="text-xs font-bold text-teal-600 mb-2">${item.price === 0 ? 'Free' : formatRupiah(item.price)}</div>
-                                
                                 <div class="flex items-center gap-2">
                                     <button type="button" onclick="changeQty(${item.id}, -1, '${item.name}', ${item.price})" class="w-6 h-6 rounded-full bg-white border border-gray-200 text-teal-600 hover:bg-teal-50 font-bold flex items-center justify-center transition shadow-sm leading-none select-none">&minus;</button>
                                     <span class="font-extrabold text-sm text-gray-900 w-4 text-center select-none">${item.qty}</span>
@@ -274,8 +313,18 @@
                 return false;
             }
 
-            // Bangun hidden inputs dari cart state ke dalam form
-            const hiddenContainer = document.getElementById('hidden-inputs');
+            sessionStorage.setItem('flowtix_cart', JSON.stringify(cart));
+            document.getElementById('cart-data-input').value = JSON.stringify(cart);
+            document.getElementById('checkout-form').submit();
+        }
+
+        function submitRealCheckout() {
+            if (Object.keys(cart).length === 0) {
+                alert('Please select at least 1 ticket.');
+                return false;
+            }
+
+            const hiddenContainer = document.getElementById('hidden-inputs-real');
             hiddenContainer.innerHTML = '';
             Object.values(cart).forEach(item => {
                 hiddenContainer.innerHTML +=
@@ -283,8 +332,56 @@
                      <input type="hidden" name="tickets[${item.id}][quantity]" value="${item.qty}">`;
             });
 
-            // Submit form ke CheckoutController
-            document.getElementById('checkout-form').submit();
+            sessionStorage.removeItem('flowtix_cart');
+            document.getElementById('real-checkout-form').submit();
         }
+
+        // ============================================================
+        // AUTO-SUBMIT LOGIC (Server-Authoritative Cart)
+        // When user has a valid queue session, populate cart from DB
+        // (NOT from sessionStorage — which is unreliable in incognito/new tabs).
+        // ============================================================
+        @if($hasValidQueueSession)
+            const serverCart = @json($queueSessionWishlist); // [{id,name,price,qty}]
+
+            if (serverCart && serverCart.length > 0) {
+                // Populate JS cart directly from server data
+                serverCart.forEach(item => {
+                    cart[item.id] = { id: item.id, name: item.name, price: item.price, qty: item.qty, max: 10 };
+                    // Sync the visible qty input on page if it exists
+                    const qtyEl = document.getElementById('qty-' + item.id);
+                    if (qtyEl) qtyEl.value = item.qty;
+                });
+                renderCart();
+
+                // Auto-submit after short delay (let page render fully)
+                setTimeout(() => {
+                    console.log("Queue granted — auto-submitting with server cart:", serverCart);
+                    submitRealCheckout();
+                }, 600);
+            } else {
+                // Server cart is empty (edge case) — try sessionStorage as fallback
+                const savedCartStr = sessionStorage.getItem('flowtix_cart');
+                if (savedCartStr) {
+                    try {
+                        const parsedCart = JSON.parse(savedCartStr);
+                        Object.assign(cart, parsedCart);
+                        renderCart();
+                        setTimeout(() => submitRealCheckout(), 600);
+                    } catch(e) { /* invalid JSON, ignore */ }
+                }
+                // If both are empty, user must select tickets manually
+            }
+        @else
+            // Normal flow (user NOT in queue): just restore cart from sessionStorage
+            const savedCartStr = sessionStorage.getItem('flowtix_cart');
+            if (savedCartStr) {
+                try {
+                    const parsedCart = JSON.parse(savedCartStr);
+                    Object.assign(cart, parsedCart);
+                    renderCart();
+                } catch(e) { /* invalid JSON, ignore */ }
+            }
+        @endif
     </script>
 </x-app-layout>

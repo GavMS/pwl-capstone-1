@@ -95,10 +95,11 @@
                         </div>
                         <!-- Cooldown Overlay -->
                         <div id="scan-cooldown-overlay"
-                            style="display: none; position: absolute; inset: 0; border-radius: 1rem; background: rgba(0,0,0,0.6); flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; pointer-events: none;">
+                            style="display: none; position: absolute; inset: 0; border-radius: 1rem; background: rgba(0,0,0,0.6); flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; pointer-events: none; z-index: 10;">
+                            <span id="scan-cooldown-msg" style="font-size: 1.5rem; font-weight: 800; color: white; text-align: center; margin-bottom: 0.5rem;"></span>
                             <span id="scan-cooldown-count"
-                                style="font-size: 3rem; font-weight: 900; color: white; line-height: 1;">3</span>
-                            <span
+                                style="font-size: 3.5rem; font-weight: 900; color: white; line-height: 1;"></span>
+                            <span id="scan-cooldown-label"
                                 style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.75);">next
                                 scan in...</span>
                         </div>
@@ -394,7 +395,6 @@
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             // ── Cooldown State ───────────────────────────────
-            const SCAN_COOLDOWN_MS = 3000; // 3 detik jeda antar scan
             let scanCooldownActive = false;
             let cooldownTimerInterval = null;
 
@@ -425,25 +425,56 @@
                 });
             }
 
-            // ── Cooldown Overlay ─────────────────────────────
-            function startCooldown() {
+            function startProcessingOverlay() {
                 scanCooldownActive = true;
-                let remaining = Math.ceil(SCAN_COOLDOWN_MS / 1000);
                 const overlay = document.getElementById('scan-cooldown-overlay');
-                const countEl = document.getElementById('scan-cooldown-count');
+                document.getElementById('scan-cooldown-msg').textContent = 'Processing...';
+                document.getElementById('scan-cooldown-msg').style.color = '#ccc';
+                document.getElementById('scan-cooldown-count').style.display = 'none';
+                document.getElementById('scan-cooldown-label').style.display = 'none';
                 if (overlay) {
                     overlay.style.display = 'flex';
-                    countEl.textContent = remaining;
+                    overlay.style.background = 'rgba(0,0,0,0.4)';
                 }
-                cooldownTimerInterval = setInterval(() => {
-                    remaining--;
-                    if (countEl) countEl.textContent = remaining;
-                    if (remaining <= 0) {
-                        clearInterval(cooldownTimerInterval);
-                        scanCooldownActive = false;
-                        if (overlay) overlay.style.display = 'none';
+            }
+
+            // ── Cooldown Overlay ─────────────────────────────
+            function startCooldown(statusText, statusColor) {
+                scanCooldownActive = true;
+                const overlay = document.getElementById('scan-cooldown-overlay');
+                const msgEl = document.getElementById('scan-cooldown-msg');
+                const countEl = document.getElementById('scan-cooldown-count');
+                const labelEl = document.getElementById('scan-cooldown-label');
+                
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                    overlay.style.background = 'rgba(0,0,0,0.8)';
+                    msgEl.textContent = statusText;
+                    msgEl.style.color = statusColor || '#fff';
+                    countEl.style.display = 'none';
+                    labelEl.style.display = 'none';
+                }
+
+                // Show status message for 1.5 seconds, then show countdown
+                setTimeout(() => {
+                    if (overlay) {
+                        msgEl.textContent = '';
+                        countEl.style.display = 'block';
+                        labelEl.style.display = 'block';
                     }
-                }, 1000);
+                    let remaining = 3;
+                    if (countEl) countEl.textContent = remaining;
+
+                    cooldownTimerInterval = setInterval(() => {
+                        remaining--;
+                        if (countEl) countEl.textContent = remaining;
+                        if (remaining <= 0) {
+                            clearInterval(cooldownTimerInterval);
+                            scanCooldownActive = false;
+                            if (overlay) overlay.style.display = 'none';
+                        }
+                    }, 1000);
+                }, 1500);
             }
 
             // ── QR Scanner ─────────────────────────────────
@@ -518,7 +549,7 @@
                 if (scanCooldownActive) return; // blok jika masih dalam cooldown
 
                 showState('loading');
-                startCooldown();
+                startProcessingOverlay();
 
                 fetch('{{ route("organizer.scan.process") }}', {
                     method: 'POST',
@@ -538,13 +569,18 @@
                             showSuccess(data.attendee);
                             updateStats(data.stats);
                             refreshHistory();
+                            startCooldown('Scan Success!', '#4ade80');
                         } else {
                             showError(data);
+                            let msg = data.type === 'already_scanned' ? 'Already Scanned!' : 'Invalid Ticket!';
+                            let color = data.type === 'already_scanned' ? '#fcd34d' : '#f87171';
+                            startCooldown(msg, color);
                         }
                     })
                     .catch(err => {
                         console.error('Scan error:', err);
                         showError({ type: 'network', message: 'Network error. Please try again.' });
+                        startCooldown('Network Error', '#f87171');
                     });
             }
 

@@ -1,0 +1,28 @@
+Instruksi Testing: Export PDF & Excel dan Statistik Event
+
+1. Jalankan Database Seeder
+    - Jalankan command berikut untuk mereset dan mengisi ulang database dengan dummy data:
+      php artisan migrate:fresh --seed
+    - Proses seeding ini akan menjalankan CategorySeeder, TicketTypeSeeder, EventSeeder, dan tambahan terbaru TransactionSeeder.
+    - TransactionSeeder akan membuat sekitar 30 transaksi sukses (beserta tiket yang diterbitkan dan digenerate secara otomatis, dengan persentase 40% tiket sudah terscan/check-in), 10 transaksi pending, dan 5 transaksi failed/expired. Data ini akan sangat berguna untuk melihat grafik statistik.
+
+2. Login ke Dashboard
+    - Silakan login menggunakan salah satu akun berikut:
+      * Akun Admin:
+        - Email: 2472042@maranatha.ac.id
+        - Username: GavMS
+        - Password: password
+      * Akun Organizer:
+        - Email: 2472014@maranatha.ac.id
+        - Username: sourrossie
+        - Password: password
+    
+3. Viewing Statistics (Statistik Acara)
+    - Masuk ke menu "Events" atau ke dashboard masing-masing event (bila ada).
+    - Anda akan dapat melihat laporan penjualan tiket, jumlah tiket terjual, dan status tiket yang sudah di-scan ("Check-in") di dashboard berdasarkan transaksi dari database.
+
+4. Export to PDF dan Excel
+    - Kunjungi halaman detail acara (Event Details) pada menu Organizer / Admin.
+    - Temukan laporan atau tabel "Attendees / Participant" atau tabel "Transactions".
+    - Gunakan tombol "Export PDF" atau "Export Excel".
+    - Hasil eksport dapat divalidasi langsung berdasarkan dummy file (nama pendaftar, jenis tiket, dan status apakah sudah discan atau valid).

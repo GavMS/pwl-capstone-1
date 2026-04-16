@@ -101,7 +101,7 @@
                 <a href="{{ route('events.show', $event->id_event) }}" class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 border border-gray-100 flex flex-col h-full">
                     <div class="relative h-48 overflow-hidden bg-gray-200 flex-shrink-0">
                         @if($event->banner)
-                            <img src="{{ asset('storage/' . $event->banner) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <img src="{{ $event->banner_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         @else
                             <div class="w-full h-full bg-gradient-to-tr from-gray-200 to-gray-300"></div>
                         @endif

@@ -1,0 +1,33 @@
+# Cara Membuat Password Hash di Laravel
+
+Anda bisa menggunakan helper `bcrypt()` atau facade `Hash`.
+
+### 1. Menggunakan Artisan Tinker (Untuk Manual)
+Buka terminal dan jalankan:
+```bash
+php artisan tinker
+```
+Lalu ketik:
+```php
+echo bcrypt('password');
+// atau
+echo Hash::make('password');
+```
+
+### 2. Menggunakan di dalam Code (Controller/Seeder)
+```php
+use Illuminate\Support\Facades\Hash;
+
+// Cara 1: Menggunakan Hash Facade
+$password = Hash::make('password');
+
+// Cara 2: Menggunakan helper bcrypt
+$password = bcrypt('password');
+```
+
+### 3. Verifikasi Password
+```php
+if (Hash::check('password-input', $hashedPassword)) {
+    // Password cocok
+}
+```
